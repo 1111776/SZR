@@ -162,8 +162,8 @@ function showStill() {
 }
 function playAnswer(data) {
   currentAudio = data.audio || "";
-  if (voice) { voice.pause(); voice = null; }
   if (data.video) {
+    if (voice) { voice.pause(); voice = null; }
     still.style.display = "none";
     stage.style.display = "block";
     stage.src = data.video;
@@ -181,6 +181,9 @@ async function ask(text, placeText) {
   const place = (placeText || placeInput.value).trim();
   const q = (text || "").trim();
   if (!q || busy) return;
+  if (voice) { voice.pause(); voice = null; }
+  voice = new Audio();
+  const primed = voice.play().catch(() => {});
   placeInput.value = place;
   add("user", "去" + place + "：" + q);
   input.value = "";
