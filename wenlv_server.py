@@ -81,7 +81,7 @@ def render_video(audio_path):
     if not video_available() or not os.path.isfile(PORTRAIT):
         return None
     raw = get_talker().test2(
-        PORTRAIT, audio_path, "full", True, False, 1, 256, 0,
+        PORTRAIT, audio_path, "full", True, False, 8, 256, 0,
         "facevid2vid", 1, False, None, None, False, 0, True, FPS,
         result_dir=VIDEO_DIR,
     )
@@ -146,12 +146,13 @@ def ask():
     data = request.get_json(silent=True) or {}
     place = (data.get("place") or "").strip()[:MAX_PLACE]
     question = (data.get("question") or "").strip()
-    if not place:
-        return jsonify({"error": "请先填写想去的景点"}), 400
     if not question:
         return jsonify({"error": "请先说出或输入想听的内容"}), 400
     question = question[:MAX_Q]
-    prompt = f"我想去{place}。{question}"
+    if place:
+        prompt = f"我想去{place}。{question}"
+    else:
+        prompt = question
     answer = llm.generate(prompt, place=place)
     spoken = answer if len(answer) <= MAX_TTS else answer[:MAX_TTS]
     audio = None
@@ -162,11 +163,6 @@ def ask():
         wav_path = os.path.join(AUDIO_DIR, os.path.basename(audio))
     except Exception as e:
         print("语音合成失败:", e)
-    if wav_path:
-        try:
-            video = render_video(wav_path)
-        except Exception as e:
-            print("视频生成失败:", e)
     return jsonify({
         "place": place,
         "question": question,
@@ -175,6 +171,53 @@ def ask():
         "video": video,
         "mode": "api" if llm.client is not None else "knowledge",
     })
+
+
+@app.post("/api/video")
+def make_video():
+    data = request.get_json(silent=True) or {}
+    name = os.path.basename(data.get("audio") or "")
+    path = os.path.join(AUDIO_DIR, name)
+    if not name.endswith(".mp3") or not os.path.isfile(path):
+        return jsonify({"error": "没有可生成视频的讲解语音"}), 400
+    try:
+        video = render_video(path)
+    except Exception as e:
+        print("视频生成失败:", e)
+        return jsonify({"error": "视频生成失败"}), 500
+    if not video:
+        return jsonify({"error": "当前没有可用显卡"}), 400
+    return jsonify({"video": video})
+
+
+@app.post("/api/listen")
+def listen():
+    audio = request.files.get("audio")
+    if audio is None:
+        return jsonify({"error": "没有收到录音"}), 400
+    name = uuid.uuid4().hex + ".webm"
+    path = os.path.join(AUDIO_DIR, name)
+    audio.save(path)
+    wav = path.replace(".webm", ".wav")
+    try:
+        import subprocess
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        from ASR.FunASR import FunASR
+        global _asr
+        if "_asr" not in globals() or _asr is None:
+            _asr = FunASR()
+        text = _asr.transcribe(wav).strip()
+    except Exception as e:
+        print("语音识别失败:", e)
+        return jsonify({"error": "没听清，请再说一次"}), 500
+    finally:
+        for item in (path, wav):
+            if os.path.exists(item):
+                os.remove(item)
+    return jsonify({"text": text})
 
 
 @app.get("/audio/<name>")

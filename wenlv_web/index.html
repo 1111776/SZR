@@ -109,7 +109,7 @@
         <form class="composer" id="form">
           <input id="place" maxlength="40" placeholder="想去哪里" autocomplete="off" style="max-width:150px" />
           <input id="q" maxlength="200" placeholder="打字提问，或按住旁边说话" autocomplete="off" />
-          <button class="mic" id="mic" type="button">按住说话</button>
+          <button class="mic" id="mic" type="button">开始说话</button>
           <button id="send" type="submit">讲解</button>
         </form>
       </section>
@@ -125,6 +125,7 @@ const mic = document.getElementById("mic");
 const still = document.getElementById("still");
 const stage = document.getElementById("stage");
 const status = document.getElementById("status");
+let currentAudio = "";
 const suggestions = [
   ["西湖", "最值得看哪里"],
   ["兵马俑", "讲讲它的历史"],
@@ -146,11 +147,19 @@ function add(role, text) {
   return bubble;
 }
 function playAnswer(data) {
-  if (!data.video) return;
-  still.style.display = "none";
-  stage.style.display = "block";
-  stage.src = data.video;
-  stage.play().catch(() => {});
+  currentAudio = data.audio || "";
+  if (data.video) {
+    still.style.display = "none";
+    stage.style.display = "block";
+    stage.src = data.video;
+    stage.play().catch(() => {});
+    return;
+  }
+  if (!data.audio) return;
+  stage.style.display = "none";
+  still.style.display = "block";
+  const sound = new Audio(data.audio);
+  sound.play().catch(() => {});
 }
 stage.addEventListener("ended", () => {
   stage.style.display = "none";
@@ -160,7 +169,6 @@ stage.addEventListener("ended", () => {
 async function ask(text, placeText) {
   const place = (placeText || placeInput.value).trim();
   const q = (text || "").trim();
-  if (!place) { placeInput.focus(); status.textContent = "先填写想去的景点"; return; }
   if (!q || busy) return;
   placeInput.value = place;
   add("user", "去" + place + "：" + q);
@@ -179,6 +187,7 @@ async function ask(text, placeText) {
     if (!res.ok) throw new Error(data.error || "请求失败");
     pending.textContent = data.answer;
     playAnswer(data);
+    addActions(pending.parentElement, data);
     status.textContent = "";
   } catch (err) {
     pending.textContent = err.message || "刚才没连上，请再问一次。";
@@ -189,30 +198,84 @@ async function ask(text, placeText) {
   }
 }
 
-const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!Speech) {
+function addActions(row, data) {
+  const box = document.createElement("div");
+  box.className = "chips";
+  if (data.audio) {
+    const again = document.createElement("button");
+    again.type = "button";
+    again.textContent = "再听一遍";
+    again.onclick = () => playAnswer({audio: data.audio, video: data.video});
+    box.appendChild(again);
+  }
+  if (data.audio && !data.video) {
+    const make = document.createElement("button");
+    make.type = "button";
+    make.textContent = "生成视频";
+    make.onclick = async () => {
+      make.disabled = true;
+      status.textContent = "正在生成视频，大约半分钟";
+      try {
+        const res = await fetch("api/video", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({audio: data.audio})
+        });
+        const out = await res.json();
+        if (!res.ok) throw new Error(out.error || "生成失败");
+        data.video = out.video;
+        playAnswer(data);
+        status.textContent = "";
+      } catch (err) {
+        status.textContent = err.message || "视频生成失败";
+      } finally {
+        make.disabled = false;
+      }
+    };
+    box.appendChild(make);
+  }
+  row.appendChild(box);
+}
+
+if (!navigator.mediaDevices || !window.MediaRecorder) {
   mic.disabled = true;
-  mic.textContent = "浏览器不支持语音";
+  mic.textContent = "无法使用麦克风";
 } else {
-  rec = new Speech();
-  rec.lang = "zh-CN";
-  rec.continuous = false;
-  rec.interimResults = false;
-  rec.onresult = (e) => {
-    const text = e.results[0][0].transcript || "";
-    input.value = text;
-    status.textContent = "听到了：" + text;
-    ask(text);
+  let recorder = null;
+  let chunks = [];
+  mic.onclick = async () => {
+    if (busy) return;
+    if (!recorder || recorder.state === "inactive") {
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      recorder = new MediaRecorder(stream);
+      chunks = [];
+      recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        status.textContent = "正在识别";
+        const body = new FormData();
+        body.append("audio", new Blob(chunks, {type: recorder.mimeType}), "speech.webm");
+        try {
+          const res = await fetch("api/listen", {method: "POST", body});
+          const data = await res.json();
+          if (!res.ok || !data.text) throw new Error(data.error || "没听清");
+          input.value = data.text;
+          status.textContent = "听到了：" + data.text;
+          ask(data.text);
+        } catch (err) {
+          status.textContent = err.message || "没听清，请再说一次";
+        }
+      };
+      recorder.start();
+      mic.classList.add("live");
+      mic.textContent = "说完点我";
+      status.textContent = "正在听，说完再点一次";
+      return;
+    }
+    recorder.stop();
+    mic.classList.remove("live");
+    mic.textContent = "开始说话";
   };
-  rec.onerror = () => { status.textContent = "没听清，请再说一次，或直接打字"; };
-  rec.onend = () => mic.classList.remove("live");
-  const start = (e) => { e.preventDefault(); if (busy) return; mic.classList.add("live"); status.textContent = "正在听，请说话"; rec.start(); };
-  const stop = () => { if (mic.classList.contains("live")) rec.stop(); };
-  mic.addEventListener("mousedown", start);
-  mic.addEventListener("mouseup", stop);
-  mic.addEventListener("mouseleave", stop);
-  mic.addEventListener("touchstart", start, {passive: false});
-  mic.addEventListener("touchend", stop);
 }
 form.addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); });
 suggestions.forEach(([place, q]) => {
@@ -225,8 +288,7 @@ suggestions.forEach(([place, q]) => {
 fetch("api/info").then(r => r.json()).then(info => {
   document.getElementById("mode").textContent = info.video ? "全身视频" : "语音讲解";
   if (info.portrait) still.src = info.portrait;
-  add("guide", "您好，我是讲解员" + (info.guide || "阿青") + "。填写景点后，可以打字，也可以按住「说话」。");
-}).catch(() => add("guide", "您好，我是讲解员阿青。"));
+}).catch(() => {});
 </script>
 </body>
 </html>
