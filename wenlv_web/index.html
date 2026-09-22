@@ -94,7 +94,7 @@
       <aside class="portrait">
         <div class="frame">
           <img id="still" alt="讲解员阿青全身" src="portrait.png" />
-          <video id="stage" playsinline style="display:none"></video>
+          <video id="stage" playsinline loop muted style="display:none"></video>
         </div>
         <div class="who">
           <p class="name">阿青</p>
@@ -153,25 +153,37 @@ function add(role, text) {
   chat.scrollTop = chat.scrollHeight;
   return bubble;
 }
+let idleSrc = "";
+function showIdle() {
+  if (!idleSrc) {
+    stage.style.display = "none";
+    still.style.display = "block";
+    return;
+  }
+  still.style.display = "none";
+  stage.loop = true;
+  stage.muted = true;
+  stage.style.display = "block";
+  if (!stage.src.endsWith(idleSrc)) stage.src = idleSrc;
+  stage.play().catch(() => {});
+}
 function playAnswer(data) {
   currentAudio = data.audio || "";
   if (data.video) {
     still.style.display = "none";
+    stage.loop = false;
+    stage.muted = false;
     stage.style.display = "block";
     stage.src = data.video;
     stage.play().catch(() => {});
     return;
   }
+  showIdle();
   if (!data.audio) return;
-  stage.style.display = "none";
-  still.style.display = "block";
   const sound = new Audio(data.audio);
   sound.play().catch(() => {});
 }
-stage.addEventListener("ended", () => {
-  stage.style.display = "none";
-  still.style.display = "block";
-});
+stage.addEventListener("ended", showIdle);
 
 async function ask(text, placeText) {
   const place = (placeText || placeInput.value).trim();
@@ -182,7 +194,7 @@ async function ask(text, placeText) {
   input.value = "";
   busy = true;
   send.disabled = true;
-  status.textContent = "阿青正在准备，第一次会稍慢";
+  status.textContent = "阿青正在准备，嘴型要等一会儿";
   const pending = add("guide", "正在准备讲解……");
   try {
     const res = await fetch("api/ask", {
@@ -214,32 +226,6 @@ function addActions(row, data) {
     again.textContent = "再听一遍";
     again.onclick = () => playAnswer({audio: data.audio, video: data.video});
     box.appendChild(again);
-  }
-  if (data.audio && !data.video) {
-    const make = document.createElement("button");
-    make.type = "button";
-    make.textContent = "生成视频";
-    make.onclick = async () => {
-      make.disabled = true;
-      status.textContent = "正在生成视频，大约半分钟";
-      try {
-        const res = await fetch("api/video", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({audio: data.audio})
-        });
-        const out = await res.json();
-        if (!res.ok) throw new Error(out.error || "生成失败");
-        data.video = out.video;
-        playAnswer(data);
-        status.textContent = "";
-      } catch (err) {
-        status.textContent = err.message || "视频生成失败";
-      } finally {
-        make.disabled = false;
-      }
-    };
-    box.appendChild(make);
   }
   row.appendChild(box);
 }
@@ -302,6 +288,8 @@ suggestions.forEach(([place, q]) => {
 fetch("api/info").then(r => r.json()).then(info => {
   document.getElementById("mode").textContent = info.video ? "全身视频" : "语音讲解";
   if (info.portrait) still.src = info.portrait;
+  idleSrc = info.idle || "";
+  showIdle();
 }).catch(() => {});
 </script>
 </body>

@@ -68,27 +68,43 @@ def get_talker():
     return _talker
 
 
+def silent_audio(seconds=5):
+    path = os.path.join(AUDIO_DIR, "silent.wav")
+    if os.path.isfile(path):
+        return path
+    import wave
+    with wave.open(path, "w") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(b"\x00\x00" * 16000 * seconds)
+    return path
+
+
 def warmup():
     if not video_available():
         print("无显卡，跳过视频预热")
         return
     try:
         get_talker()
+        if not os.path.isfile(os.path.join(VIDEO_DIR, "idle.mp4")):
+            render_video(silent_audio(), "idle.mp4")
     except Exception as e:
         print("视频预热失败:", e)
 
 
-def render_video(audio_path):
+def render_video(audio_path, name=None):
     if not video_available() or not os.path.isfile(PORTRAIT):
         return None
     raw = get_talker().test2(
-        PORTRAIT, audio_path, "full", True, False, 8, 256, 0,
+        PORTRAIT, audio_path, "full", False, False, 8, 256, 0,
         "facevid2vid", 1, False, None, None, False, 0, True, FPS,
         result_dir=VIDEO_DIR,
     )
     if not raw or not os.path.isfile(raw):
         return None
-    name = uuid.uuid4().hex + ".mp4"
+    if not name:
+        name = uuid.uuid4().hex + ".mp4"
     dest = os.path.join(VIDEO_DIR, name)
     os.replace(raw, dest)
     files = sorted(
@@ -96,6 +112,8 @@ def render_video(audio_path):
         key=os.path.getmtime,
     )
     for old in files[:-8]:
+        if os.path.basename(old) == "idle.mp4":
+            continue
         try:
             os.remove(old)
         except OSError:
@@ -133,6 +151,7 @@ def info():
         "voice": VOICE,
         "video": video_available(),
         "portrait": "/portrait.png",
+        "idle": "/video/idle.mp4" if os.path.isfile(os.path.join(VIDEO_DIR, "idle.mp4")) else "",
     })
 
 
@@ -166,6 +185,11 @@ def ask():
         wav_path = os.path.join(AUDIO_DIR, os.path.basename(audio))
     except Exception as e:
         print("语音合成失败:", e)
+    if wav_path:
+        try:
+            video = render_video(wav_path)
+        except Exception as e:
+            print("视频生成失败:", e)
     return jsonify({
         "place": place,
         "question": question,
