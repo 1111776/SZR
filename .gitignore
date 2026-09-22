@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.mp3
+*.mp4
+*.wav
+wenlv_audio/
+wenlv_video/
+wenlv_face/
+full_body_1.png
+full_body_2.png
+full3.png
+wenlv_frame.jpg
+cmd*.sh
+ssh_run.py
+ssh_put.py
+ssh_get.py
+.claude/

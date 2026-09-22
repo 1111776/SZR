@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>阿青 · 全国景点讲解</title>
+<style>
+  :root {
+    --ink: #2a2118;
+    --gold: #c4a15a;
+    --red: #8c2f2f;
+    --card: rgba(255, 250, 242, 0.94);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--ink);
+    font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", serif;
+    background:
+      radial-gradient(900px 420px at 10% -10%, rgba(140,47,47,.18), transparent 55%),
+      radial-gradient(900px 420px at 100% 0%, rgba(196,161,90,.32), transparent 50%),
+      linear-gradient(165deg, #f7efe2, #eadcc8 55%, #e4d3bd);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 22px 16px 32px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 12px;
+    padding-bottom: 12px; border-bottom: 1px solid rgba(140,47,47,.22);
+  }
+  h1 { margin: 0; font-size: 30px; letter-spacing: 2px; font-weight: 600; }
+  h1 span { color: var(--red); }
+  .sub { margin: 6px 0 0; color: #6d5c48; font-size: 14px; }
+  .badge {
+    font-size: 12px; letter-spacing: 1px; border: 1px solid var(--gold);
+    color: #7a6230; padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  }
+  .stage { margin-top: 18px; display: grid; grid-template-columns: 390px 1fr; gap: 16px; }
+  .portrait, .panel {
+    background: var(--card); border: 1px solid rgba(196,161,90,.5);
+    border-radius: 18px; box-shadow: 0 12px 28px rgba(90,60,20,.08);
+  }
+  .portrait { padding: 14px; }
+  .frame {
+    height: 620px; border-radius: 14px; overflow: hidden; background: #1b1714;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .frame img, .frame video { width: 100%; height: 100%; object-fit: contain; background: #1b1714; }
+  .who { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
+  .name { margin: 0; font-size: 20px; }
+  .role { margin: 0; color: #7a6230; font-size: 13px; }
+  .note { margin: 8px 0 0; color: #6d5c48; font-size: 12px; line-height: 1.6; }
+  .panel { min-height: 680px; display: flex; flex-direction: column; }
+  .chat { flex: 1; overflow: auto; padding: 16px; }
+  .msg { display: flex; margin-bottom: 12px; }
+  .msg.user { justify-content: flex-end; }
+  .bubble { max-width: 80%; padding: 10px 14px; line-height: 1.7; border-radius: 14px; }
+  .msg.guide .bubble { background: #fff; border: 1px solid rgba(140,47,47,.12); }
+  .msg.user .bubble { background: #8c2f2f; color: #fff8ee; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 12px 10px; }
+  .chips button, .mic {
+    background: transparent; color: #7a6230; border: 1px solid var(--gold);
+  }
+  .composer { display: flex; gap: 8px; padding: 12px; border-top: 1px solid rgba(196,161,90,.35); }
+  input, button { font-family: inherit; font-size: 15px; }
+  input {
+    flex: 1; border: 1px solid rgba(140,47,47,.2); background: #fff;
+    border-radius: 12px; padding: 12px 14px; outline: none;
+  }
+  button {
+    border: 0; background: var(--red); color: #fff8ee; border-radius: 12px;
+    padding: 0 16px; cursor: pointer;
+  }
+  button:disabled { opacity: .55; cursor: wait; }
+  .mic.live { background: var(--red); color: #fff8ee; border-color: var(--red); }
+  #status { min-height: 18px; margin: 0 14px 8px; color: #8c2f2f; font-size: 13px; }
+  @media (max-width: 800px) {
+    .stage { grid-template-columns: 1fr; }
+    .frame { height: 72vw; max-height: 640px; }
+    .panel { min-height: 480px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>讲解员 <span>阿青</span> · 全国景点</h1>
+        <p class="sub">可以说，也可以打字。先告诉她想去哪里。</p>
+      </div>
+      <div class="badge" id="mode">准备中</div>
+    </header>
+    <div class="stage">
+      <aside class="portrait">
+        <div class="frame">
+          <img id="still" alt="讲解员阿青全身" src="portrait.png" />
+          <video id="stage" playsinline style="display:none"></video>
+        </div>
+        <div class="who">
+          <p class="name">阿青</p>
+          <p class="role">全身讲解</p>
+        </div>
+        <p class="note" id="note">门票和开放时间以景区当天公布为准。第一次提问会稍慢，之后会快一些。</p>
+      </aside>
+      <section class="panel">
+        <div class="chat" id="chat"></div>
+        <div class="chips" id="chips"></div>
+        <p id="status"></p>
+        <form class="composer" id="form">
+          <input id="place" maxlength="40" placeholder="想去哪里" autocomplete="off" style="max-width:150px" />
+          <input id="q" maxlength="200" placeholder="打字提问，或按住旁边说话" autocomplete="off" />
+          <button class="mic" id="mic" type="button">按住说话</button>
+          <button id="send" type="submit">讲解</button>
+        </form>
+      </section>
+    </div>
+  </div>
+<script>
+const chat = document.getElementById("chat");
+const form = document.getElementById("form");
+const placeInput = document.getElementById("place");
+const input = document.getElementById("q");
+const send = document.getElementById("send");
+const mic = document.getElementById("mic");
+const still = document.getElementById("still");
+const stage = document.getElementById("stage");
+const status = document.getElementById("status");
+const suggestions = [
+  ["西湖", "最值得看哪里"],
+  ["兵马俑", "讲讲它的历史"],
+  ["故宫", "半天怎么逛"],
+  ["外滩", "晚上看什么"]
+];
+let busy = false;
+let rec = null;
+
+function add(role, text) {
+  const row = document.createElement("div");
+  row.className = "msg " + role;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return bubble;
+}
+function playAnswer(data) {
+  if (!data.video) return;
+  still.style.display = "none";
+  stage.style.display = "block";
+  stage.src = data.video;
+  stage.play().catch(() => {});
+}
+stage.addEventListener("ended", () => {
+  stage.style.display = "none";
+  still.style.display = "block";
+});
+
+async function ask(text, placeText) {
+  const place = (placeText || placeInput.value).trim();
+  const q = (text || "").trim();
+  if (!place) { placeInput.focus(); status.textContent = "先填写想去的景点"; return; }
+  if (!q || busy) return;
+  placeInput.value = place;
+  add("user", "去" + place + "：" + q);
+  input.value = "";
+  busy = true;
+  send.disabled = true;
+  status.textContent = "阿青正在准备，第一次会稍慢";
+  const pending = add("guide", "正在准备讲解……");
+  try {
+    const res = await fetch("api/ask", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({place, question: q})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "请求失败");
+    pending.textContent = data.answer;
+    playAnswer(data);
+    status.textContent = "";
+  } catch (err) {
+    pending.textContent = err.message || "刚才没连上，请再问一次。";
+    status.textContent = "";
+  } finally {
+    busy = false;
+    send.disabled = false;
+  }
+}
+
+const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!Speech) {
+  mic.disabled = true;
+  mic.textContent = "浏览器不支持语音";
+} else {
+  rec = new Speech();
+  rec.lang = "zh-CN";
+  rec.continuous = false;
+  rec.interimResults = false;
+  rec.onresult = (e) => {
+    const text = e.results[0][0].transcript || "";
+    input.value = text;
+    status.textContent = "听到了：" + text;
+    ask(text);
+  };
+  rec.onerror = () => { status.textContent = "没听清，请再说一次，或直接打字"; };
+  rec.onend = () => mic.classList.remove("live");
+  const start = (e) => { e.preventDefault(); if (busy) return; mic.classList.add("live"); status.textContent = "正在听，请说话"; rec.start(); };
+  const stop = () => { if (mic.classList.contains("live")) rec.stop(); };
+  mic.addEventListener("mousedown", start);
+  mic.addEventListener("mouseup", stop);
+  mic.addEventListener("mouseleave", stop);
+  mic.addEventListener("touchstart", start, {passive: false});
+  mic.addEventListener("touchend", stop);
+}
+form.addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); });
+suggestions.forEach(([place, q]) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = place + " · " + q;
+  b.onclick = () => ask(q, place);
+  document.getElementById("chips").appendChild(b);
+});
+fetch("api/info").then(r => r.json()).then(info => {
+  document.getElementById("mode").textContent = info.video ? "全身视频" : "语音讲解";
+  if (info.portrait) still.src = info.portrait;
+  add("guide", "您好，我是讲解员" + (info.guide || "阿青") + "。填写景点后，可以打字，也可以按住「说话」。");
+}).catch(() => add("guide", "您好，我是讲解员阿青。"));
+</script>
+</body>
+</html>
