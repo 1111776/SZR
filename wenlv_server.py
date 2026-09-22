@@ -35,7 +35,8 @@ PORTRAIT = os.environ.get(
 )
 MAX_Q = 200
 MAX_PLACE = 40
-MAX_TTS = 70
+MAX_TTS_BRIEF = 70
+MAX_TTS_DETAIL = 260
 FPS = 12
 _talker = None
 _video_ok = None
@@ -146,6 +147,7 @@ def ask():
     data = request.get_json(silent=True) or {}
     place = (data.get("place") or "").strip()[:MAX_PLACE]
     question = (data.get("question") or "").strip()
+    detail = bool(data.get("detail"))
     if not question:
         return jsonify({"error": "请先说出或输入想听的内容"}), 400
     question = question[:MAX_Q]
@@ -153,8 +155,9 @@ def ask():
         prompt = f"我想去{place}。{question}"
     else:
         prompt = question
-    answer = llm.generate(prompt, place=place)
-    spoken = answer if len(answer) <= MAX_TTS else answer[:MAX_TTS]
+    answer = llm.generate(prompt, place=place, detail=detail)
+    limit = MAX_TTS_DETAIL if detail else MAX_TTS_BRIEF
+    spoken = answer if len(answer) <= limit else answer[:limit]
     audio = None
     video = None
     wav_path = None

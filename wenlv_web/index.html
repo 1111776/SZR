@@ -71,7 +71,7 @@
     padding: 0 16px; cursor: pointer;
   }
   button:disabled { opacity: .55; cursor: wait; }
-  .mic.live { background: var(--red); color: #fff8ee; border-color: var(--red); }
+  .mic.live, .len.on { background: var(--red); color: #fff8ee; border-color: var(--red); }
   #status { min-height: 18px; margin: 0 14px 8px; color: #8c2f2f; font-size: 13px; }
   @media (max-width: 800px) {
     .stage { grid-template-columns: 1fr; }
@@ -105,6 +105,10 @@
       <section class="panel">
         <div class="chat" id="chat"></div>
         <div class="chips" id="chips"></div>
+        <div class="chips">
+          <button class="len on" id="brief" type="button">简短讲解</button>
+          <button class="len" id="detail" type="button">详细讲解</button>
+        </div>
         <p id="status"></p>
         <form class="composer" id="form">
           <input id="place" maxlength="40" placeholder="想去哪里" autocomplete="off" style="max-width:150px" />
@@ -125,7 +129,10 @@ const mic = document.getElementById("mic");
 const still = document.getElementById("still");
 const stage = document.getElementById("stage");
 const status = document.getElementById("status");
+const briefBtn = document.getElementById("brief");
+const detailBtn = document.getElementById("detail");
 let currentAudio = "";
+let detail = false;
 const suggestions = [
   ["西湖", "最值得看哪里"],
   ["兵马俑", "讲讲它的历史"],
@@ -181,7 +188,7 @@ async function ask(text, placeText) {
     const res = await fetch("api/ask", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({place, question: q})
+      body: JSON.stringify({place, question: q, detail})
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "请求失败");
@@ -277,6 +284,13 @@ if (!navigator.mediaDevices || !window.MediaRecorder) {
     mic.textContent = "开始说话";
   };
 }
+function setDetail(on) {
+  detail = on;
+  briefBtn.classList.toggle("on", !on);
+  detailBtn.classList.toggle("on", on);
+}
+briefBtn.onclick = () => setDetail(false);
+detailBtn.onclick = () => setDetail(true);
 form.addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); });
 suggestions.forEach(([place, q]) => {
   const b = document.createElement("button");

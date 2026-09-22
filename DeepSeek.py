@@ -15,7 +15,7 @@ except ImportError:
     DEEPSEEK_BASE_URL = "https://api.deepseek.com"
     DEEPSEEK_MODEL = "deepseek-chat"
 
-    def build_system_prompt(place=""):
+    def build_system_prompt(place="", detail=False):
         return "你是文旅讲解员阿青。" + (f"游客要去{place}。" if place else "")
 
     def get_fallback_answer(q, place=""):
@@ -29,7 +29,7 @@ class DeepSeek():
         self.model_path = model_path or DEEPSEEK_MODEL
         self.api_key = api_key or DEEPSEEK_API_KEY
         self.prefix_prompt = prefix_prompt
-        self.system_prompt = build_system_prompt("")
+        self.system_prompt = build_system_prompt("", False)
         self.history = []
         self.client = None
         if self.api_key:
@@ -42,9 +42,9 @@ class DeepSeek():
         else:
             print("未配置 DEEPSEEK_API_KEY")
 
-    def generate(self, message, system_prompt="", place=""):
+    def generate(self, message, system_prompt="", place="", detail=False):
         if system_prompt in _GENERIC_SYSTEMS:
-            system_prompt = build_system_prompt(place)
+            system_prompt = build_system_prompt(place, detail)
         if self.client is not None:
             try:
                 response = self.client.chat.completions.create(
@@ -54,7 +54,7 @@ class DeepSeek():
                         {"role": "user", "content": message},
                     ],
                     temperature=0.7,
-                    max_tokens=160,
+                    max_tokens=420 if detail else 160,
                 )
                 return response.choices[0].message.content.strip()
             except Exception as e:
