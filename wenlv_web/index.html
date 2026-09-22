@@ -94,7 +94,7 @@
       <aside class="portrait">
         <div class="frame">
           <img id="still" alt="讲解员阿青全身" src="portrait.png" />
-          <video id="stage" playsinline loop muted style="display:none"></video>
+          <video id="stage" playsinline style="display:none"></video>
         </div>
         <div class="who">
           <p class="name">阿青</p>
@@ -153,37 +153,29 @@ function add(role, text) {
   chat.scrollTop = chat.scrollHeight;
   return bubble;
 }
-let idleSrc = "";
-function showIdle() {
-  if (!idleSrc) {
-    stage.style.display = "none";
-    still.style.display = "block";
-    return;
-  }
-  still.style.display = "none";
-  stage.loop = true;
-  stage.muted = true;
-  stage.style.display = "block";
-  if (!stage.src.endsWith(idleSrc)) stage.src = idleSrc;
-  stage.play().catch(() => {});
+let voice = null;
+function showStill() {
+  stage.pause();
+  stage.removeAttribute("src");
+  stage.style.display = "none";
+  still.style.display = "block";
 }
 function playAnswer(data) {
   currentAudio = data.audio || "";
+  if (voice) { voice.pause(); voice = null; }
   if (data.video) {
     still.style.display = "none";
-    stage.loop = false;
-    stage.muted = false;
     stage.style.display = "block";
     stage.src = data.video;
     stage.play().catch(() => {});
     return;
   }
-  showIdle();
+  showStill();
   if (!data.audio) return;
-  const sound = new Audio(data.audio);
-  sound.play().catch(() => {});
+  voice = new Audio(data.audio);
+  voice.play().catch(() => {});
 }
-stage.addEventListener("ended", showIdle);
+stage.addEventListener("ended", showStill);
 
 async function ask(text, placeText) {
   const place = (placeText || placeInput.value).trim();
@@ -207,13 +199,32 @@ async function ask(text, placeText) {
     pending.textContent = data.answer;
     playAnswer(data);
     addActions(pending.parentElement, data);
-    status.textContent = "";
+    status.textContent = data.video ? "" : "正在准备口型";
+    if (!data.video && data.audio) loadVideo(data, status);
   } catch (err) {
     pending.textContent = err.message || "刚才没连上，请再问一次。";
     status.textContent = "";
   } finally {
     busy = false;
     send.disabled = false;
+  }
+}
+
+async function loadVideo(data, statusEl) {
+  try {
+    const res = await fetch("api/video", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({audio: data.audio})
+    });
+    const out = await res.json();
+    if (!res.ok || !out.video) return;
+    if (currentAudio !== data.audio) return;
+    data.video = out.video;
+    playAnswer(data);
+    statusEl.textContent = "";
+  } catch (err) {
+    statusEl.textContent = "";
   }
 }
 
@@ -288,8 +299,7 @@ suggestions.forEach(([place, q]) => {
 fetch("api/info").then(r => r.json()).then(info => {
   document.getElementById("mode").textContent = info.video ? "全身视频" : "语音讲解";
   if (info.portrait) still.src = info.portrait;
-  idleSrc = info.idle || "";
-  showIdle();
+  showStill();
 }).catch(() => {});
 </script>
 </body>

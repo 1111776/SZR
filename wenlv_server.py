@@ -81,16 +81,27 @@ def silent_audio(seconds=5):
     return path
 
 
+def get_asr():
+    global _asr
+    if "_asr" not in globals() or _asr is None:
+        from ASR.FunASR import FunASR
+        _asr = FunASR()
+        print("语音识别已加载")
+    return _asr
+
+
 def warmup():
     if not video_available():
         print("无显卡，跳过视频预热")
         return
     try:
         get_talker()
-        if not os.path.isfile(os.path.join(VIDEO_DIR, "idle.mp4")):
-            render_video(silent_audio(), "idle.mp4")
     except Exception as e:
         print("视频预热失败:", e)
+    try:
+        get_asr()
+    except Exception as e:
+        print("语音识别预热失败:", e)
 
 
 def render_video(audio_path, name=None):
@@ -151,7 +162,6 @@ def info():
         "voice": VOICE,
         "video": video_available(),
         "portrait": "/portrait.png",
-        "idle": "/video/idle.mp4" if os.path.isfile(os.path.join(VIDEO_DIR, "idle.mp4")) else "",
     })
 
 
@@ -185,11 +195,6 @@ def ask():
         wav_path = os.path.join(AUDIO_DIR, os.path.basename(audio))
     except Exception as e:
         print("语音合成失败:", e)
-    if wav_path:
-        try:
-            video = render_video(wav_path)
-        except Exception as e:
-            print("视频生成失败:", e)
     return jsonify({
         "place": place,
         "question": question,
@@ -232,11 +237,7 @@ def listen():
             ["ffmpeg", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav],
             check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        from ASR.FunASR import FunASR
-        global _asr
-        if "_asr" not in globals() or _asr is None:
-            _asr = FunASR()
-        text = _asr.transcribe(wav).strip()
+        text = get_asr().transcribe(wav).strip()
     except Exception as e:
         print("语音识别失败:", e)
         return jsonify({"error": "没听清，请再说一次"}), 500
