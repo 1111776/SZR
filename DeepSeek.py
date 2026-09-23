@@ -54,7 +54,7 @@ class DeepSeek():
                         {"role": "user", "content": message},
                     ],
                     temperature=0.7,
-                    max_tokens=420 if detail else 160,
+                    max_tokens=420 if detail else 80,
                 )
                 return response.choices[0].message.content.strip()
             except Exception as e:

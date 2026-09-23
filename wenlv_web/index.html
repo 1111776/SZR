@@ -77,7 +77,10 @@
   }
   button:disabled { opacity: .55; cursor: wait; }
   .mic.live, .len.on { background: var(--red); color: #fff8ee; border-color: var(--red); }
-  .play { position: absolute; right: 12px; bottom: 12px; background: rgba(42,33,24,.72); }
+  .play {
+    position: absolute; right: 12px; bottom: 12px; z-index: 5;
+    background: rgba(42,33,24,.82); color: #fff8ee;
+  }
   #status { min-height: 18px; margin: 0 14px 8px; color: #8c2f2f; font-size: 13px; }
   @media (max-width: 800px) {
     .stage { grid-template-columns: 1fr; }

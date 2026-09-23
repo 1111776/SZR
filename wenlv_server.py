@@ -37,9 +37,9 @@ PORTRAIT = os.environ.get(
 )
 MAX_Q = 200
 MAX_PLACE = 40
-MAX_TTS_BRIEF = 70
+MAX_TTS_BRIEF = 36
 MAX_TTS_DETAIL = 260
-FPS = 12
+FPS = 10
 _talker = None
 _video_ok = None
 _gpu_lock = threading.Lock()
@@ -112,7 +112,7 @@ def render_video(audio_path, name=None):
         return None
     with _gpu_lock:
         raw = get_talker().test2(
-            PORTRAIT, audio_path, "full", False, False, 8, 256, 0,
+            PORTRAIT, audio_path, "full", True, False, 8, 256, 0,
             "facevid2vid", 1, False, None, None, False, 0, True, FPS,
             result_dir=VIDEO_DIR,
         )
