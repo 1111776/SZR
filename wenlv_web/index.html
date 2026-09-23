@@ -163,6 +163,7 @@ function showStill() {
 function playAnswer(data) {
   currentAudio = data.audio || "";
   if (data.video) {
+    if (voice && !voice.paused && voice.currentTime > 0.4) return;
     if (voice) { voice.pause(); voice = null; }
     still.style.display = "none";
     stage.style.display = "block";
@@ -172,7 +173,8 @@ function playAnswer(data) {
   }
   showStill();
   if (!data.audio) return;
-  voice = new Audio(data.audio);
+  if (!voice) voice = new Audio();
+  voice.src = data.audio;
   voice.play().catch(() => {});
 }
 stage.addEventListener("ended", showStill);

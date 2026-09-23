@@ -7,6 +7,7 @@
 import asyncio
 import os
 import sys
+import threading
 import uuid
 
 os.environ["PATH"] = "/root/miniconda3/bin:" + os.environ.get("PATH", "")
@@ -40,6 +41,7 @@ MAX_TTS_DETAIL = 260
 FPS = 12
 _talker = None
 _video_ok = None
+_gpu_lock = threading.Lock()
 
 
 async def _tts(text, path):
@@ -107,11 +109,12 @@ def warmup():
 def render_video(audio_path, name=None):
     if not video_available() or not os.path.isfile(PORTRAIT):
         return None
-    raw = get_talker().test2(
-        PORTRAIT, audio_path, "full", False, False, 8, 256, 0,
-        "facevid2vid", 1, False, None, None, False, 0, True, FPS,
-        result_dir=VIDEO_DIR,
-    )
+    with _gpu_lock:
+        raw = get_talker().test2(
+            PORTRAIT, audio_path, "full", False, False, 8, 256, 0,
+            "facevid2vid", 1, False, None, None, False, 0, True, FPS,
+            result_dir=VIDEO_DIR,
+        )
     if not raw or not os.path.isfile(raw):
         return None
     if not name:
@@ -237,7 +240,8 @@ def listen():
             ["ffmpeg", "-y", "-i", path, "-ac", "1", "-ar", "16000", wav],
             check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        text = get_asr().transcribe(wav).strip()
+        with _gpu_lock:
+            text = get_asr().transcribe(wav).strip()
     except Exception as e:
         print("语音识别失败:", e)
         return jsonify({"error": "没听清，请再说一次"}), 500
@@ -271,4 +275,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("WENLV_PORT", "6006"))
     print(f"文旅讲解员已启动: http://0.0.0.0:{port}  范围={SCENIC_NAME}")
     warmup()
-    app.run(host="0.0.0.0", port=port, threaded=False)
+    app.run(host="0.0.0.0", port=port, threaded=True)
