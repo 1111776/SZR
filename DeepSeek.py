@@ -61,6 +61,30 @@ class DeepSeek():
                 print("DeepSeek API调用失败:", e)
         return get_fallback_answer(message, place)
 
+    def stream(self, message, place="", detail=False):
+        system_prompt = build_system_prompt(place, detail)
+        if self.client is None:
+            yield get_fallback_answer(message, place)
+            return
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_path,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": message},
+                ],
+                temperature=0.7,
+                max_tokens=420 if detail else 160,
+                stream=True,
+            )
+            for chunk in response:
+                piece = chunk.choices[0].delta.content or ""
+                if piece:
+                    yield piece
+        except Exception as e:
+            print("DeepSeek 流式调用失败:", e)
+            yield get_fallback_answer(message, place)
+
     def chat(self, system_prompt, message, history):
         response = self.generate(message, system_prompt)
         history.append((message, response))

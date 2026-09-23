@@ -46,6 +46,9 @@
     display: flex; align-items: center; justify-content: center;
   }
   .frame img, .frame video { width: 100%; height: 100%; object-fit: contain; background: #1b1714; }
+  .frame video { position: absolute; inset: 0; }
+  .talking { animation: nod 1.6s ease-in-out infinite; transform-origin: center 18%; }
+  @keyframes nod { 50% { transform: translateY(5px) scale(1.012); } }
   .who { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
   .name { margin: 0; font-size: 20px; }
   .role { margin: 0; color: #7a6230; font-size: 13px; }
@@ -204,25 +207,46 @@ async function ask(text, placeText) {
   input.value = "";
   busy = true;
   send.disabled = true;
-  status.textContent = "阿青正在准备，嘴型要等一会儿";
-  const pending = add("guide", "正在准备讲解……");
+  status.textContent = "阿青正在讲";
+  const pending = add("guide", "");
+  still.classList.add("talking");
+  const data = {answer: "", audio: ""};
   try {
     const res = await fetch("api/ask", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({place, question: q, detail})
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "请求失败");
-    pending.textContent = data.answer;
+    if (!res.ok || !res.body) throw new Error("请求失败");
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const step = await reader.read();
+      if (step.done) break;
+      buf += decoder.decode(step.value, {stream: true});
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      lines.forEach(line => {
+        if (!line.startsWith("data: ")) return;
+        const msg = JSON.parse(line.slice(6));
+        if (msg.text) {
+          data.answer += msg.text;
+          pending.textContent = data.answer;
+          chat.scrollTop = chat.scrollHeight;
+        }
+        if (msg.done) data.audio = msg.audio || "";
+      });
+    }
     playAnswer(data);
     addActions(pending.parentElement, data);
-    status.textContent = "阿青正在准备动作";
+    status.textContent = data.audio ? "正在接上口型" : "";
     if (data.audio) loadVideo(data, status);
   } catch (err) {
     pending.textContent = err.message || "刚才没连上，请再问一次。";
     status.textContent = "";
   } finally {
+    still.classList.remove("talking");
     busy = false;
     send.disabled = false;
   }
@@ -241,13 +265,12 @@ async function loadVideo(data, statusEl) {
     data.video = out.video;
     const at = voice && voice.src.endsWith(data.audio) ? voice.currentTime : 0;
     if (voice) { voice.pause(); voice = null; }
-    still.style.display = "none";
     stage.style.display = "block";
     stage.src = out.video;
     const start = () => {
       if (at > 0.3 && at < (stage.duration || 1e9) - 0.3) stage.currentTime = at;
       stage.play().then(() => { toggle.textContent = "暂停"; statusEl.textContent = ""; })
-        .catch(() => { showStill(); speak(data.audio); statusEl.textContent = ""; });
+        .catch(() => { stage.style.display = "none"; speak(data.audio); statusEl.textContent = ""; });
     };
     if (stage.readyState >= 1) start();
     else stage.onloadedmetadata = start;

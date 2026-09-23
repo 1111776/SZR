@@ -5,6 +5,7 @@
 模型和无变化的人脸只在首次加载，后续提问复用。
 """
 import asyncio
+import json
 import os
 import sys
 import threading
@@ -16,7 +17,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE)
 sys.path.insert(0, BASE)
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory, stream_with_context
 
 from LLM.DeepSeek import DeepSeek
 from wenlv_config import GUIDE_NAME, SCENIC_NAME
@@ -187,25 +188,29 @@ def ask():
         prompt = f"我想去{place}。{question}"
     else:
         prompt = question
-    answer = llm.generate(prompt, place=place, detail=detail)
-    limit = MAX_TTS_DETAIL if detail else MAX_TTS_BRIEF
-    spoken = answer if len(answer) <= limit else answer[:limit]
-    audio = None
-    video = None
-    wav_path = None
-    try:
-        audio = synthesize(spoken)
-        wav_path = os.path.join(AUDIO_DIR, os.path.basename(audio))
-    except Exception as e:
-        print("语音合成失败:", e)
-    return jsonify({
-        "place": place,
-        "question": question,
-        "answer": answer,
-        "audio": audio,
-        "video": video,
-        "mode": "api" if llm.client is not None else "knowledge",
-    })
+
+    def events():
+        parts = []
+        try:
+            for piece in llm.stream(prompt, place=place, detail=detail):
+                parts.append(piece)
+                yield "data: " + json.dumps({"text": piece}, ensure_ascii=False) + "\n\n"
+        except Exception as e:
+            print("讲解生成失败:", e)
+            text = "刚才没连上，请再问一次。"
+            parts = [text]
+            yield "data: " + json.dumps({"text": text}, ensure_ascii=False) + "\n\n"
+        answer = "".join(parts).strip()
+        limit = MAX_TTS_DETAIL if detail else MAX_TTS_BRIEF
+        spoken = answer if len(answer) <= limit else answer[:limit]
+        audio = None
+        try:
+            audio = synthesize(spoken)
+        except Exception as e:
+            print("语音合成失败:", e)
+        yield "data: " + json.dumps({"done": True, "answer": answer, "audio": audio}, ensure_ascii=False) + "\n\n"
+
+    return Response(stream_with_context(events()), mimetype="text/event-stream")
 
 
 @app.post("/api/video")
