@@ -41,6 +41,7 @@
   }
   .portrait { padding: 14px; }
   .frame {
+    position: relative;
     height: 620px; border-radius: 14px; overflow: hidden; background: #1b1714;
     display: flex; align-items: center; justify-content: center;
   }
@@ -72,6 +73,7 @@
   }
   button:disabled { opacity: .55; cursor: wait; }
   .mic.live, .len.on { background: var(--red); color: #fff8ee; border-color: var(--red); }
+  .play { position: absolute; right: 12px; bottom: 12px; background: rgba(42,33,24,.72); }
   #status { min-height: 18px; margin: 0 14px 8px; color: #8c2f2f; font-size: 13px; }
   @media (max-width: 800px) {
     .stage { grid-template-columns: 1fr; }
@@ -95,6 +97,7 @@
         <div class="frame">
           <img id="still" alt="讲解员阿青全身" src="portrait.png" />
           <video id="stage" playsinline style="display:none"></video>
+          <button class="play" id="toggle" type="button">暂停</button>
         </div>
         <div class="who">
           <p class="name">阿青</p>
@@ -129,6 +132,7 @@ const mic = document.getElementById("mic");
 const still = document.getElementById("still");
 const stage = document.getElementById("stage");
 const status = document.getElementById("status");
+const toggle = document.getElementById("toggle");
 const briefBtn = document.getElementById("brief");
 const detailBtn = document.getElementById("detail");
 let currentAudio = "";
@@ -160,24 +164,33 @@ function showStill() {
   stage.style.display = "none";
   still.style.display = "block";
 }
+function speak(src) {
+  if (!src) return;
+  if (!voice) voice = new Audio();
+  voice.src = src;
+  voice.play().then(() => { toggle.textContent = "暂停"; }).catch(() => {});
+}
 function playAnswer(data) {
   currentAudio = data.audio || "";
   if (data.video) {
-    if (voice && !voice.paused && voice.currentTime > 0.4) return;
-    if (voice) { voice.pause(); voice = null; }
     still.style.display = "none";
     stage.style.display = "block";
     stage.src = data.video;
-    stage.play().catch(() => {});
+    const started = stage.play();
+    if (started) started.then(() => { toggle.textContent = "暂停"; }).catch(showStill);
     return;
   }
   showStill();
-  if (!data.audio) return;
-  if (!voice) voice = new Audio();
-  voice.src = data.audio;
-  voice.play().catch(() => {});
+  speak(data.audio);
 }
 stage.addEventListener("ended", showStill);
+stage.addEventListener("error", () => { showStill(); speak(currentAudio); });
+toggle.onclick = () => {
+  const clip = stage.style.display !== "none" && stage.src ? stage : voice;
+  if (!clip || !clip.src) return;
+  if (clip.paused) { clip.play(); toggle.textContent = "暂停"; }
+  else { clip.pause(); toggle.textContent = "继续"; }
+};
 
 async function ask(text, placeText) {
   const place = (placeText || placeInput.value).trim();
@@ -204,32 +217,13 @@ async function ask(text, placeText) {
     pending.textContent = data.answer;
     playAnswer(data);
     addActions(pending.parentElement, data);
-    status.textContent = data.video ? "" : "正在准备口型";
-    if (!data.video && data.audio) loadVideo(data, status);
+    status.textContent = "";
   } catch (err) {
     pending.textContent = err.message || "刚才没连上，请再问一次。";
     status.textContent = "";
   } finally {
     busy = false;
     send.disabled = false;
-  }
-}
-
-async function loadVideo(data, statusEl) {
-  try {
-    const res = await fetch("api/video", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({audio: data.audio})
-    });
-    const out = await res.json();
-    if (!res.ok || !out.video) return;
-    if (currentAudio !== data.audio) return;
-    data.video = out.video;
-    playAnswer(data);
-    statusEl.textContent = "";
-  } catch (err) {
-    statusEl.textContent = "";
   }
 }
 
@@ -240,8 +234,32 @@ function addActions(row, data) {
     const again = document.createElement("button");
     again.type = "button";
     again.textContent = "再听一遍";
-    again.onclick = () => playAnswer({audio: data.audio, video: data.video});
+    again.onclick = () => playAnswer({audio: data.audio});
     box.appendChild(again);
+    const make = document.createElement("button");
+    make.type = "button";
+    make.textContent = "生成视频";
+    make.onclick = async () => {
+      make.disabled = true;
+      status.textContent = "正在生成视频，大约二十秒";
+      try {
+        const res = await fetch("api/video", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({audio: data.audio})
+        });
+        const out = await res.json();
+        if (!res.ok || !out.video) throw new Error(out.error || "生成失败");
+        data.video = out.video;
+        playAnswer({audio: data.audio, video: out.video});
+        status.textContent = "";
+      } catch (err) {
+        status.textContent = err.message || "视频生成失败";
+      } finally {
+        make.disabled = false;
+      }
+    };
+    box.appendChild(make);
   }
   row.appendChild(box);
 }
