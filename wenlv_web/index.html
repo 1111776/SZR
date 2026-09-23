@@ -46,7 +46,8 @@
     display: flex; align-items: center; justify-content: center;
   }
   .frame img, .frame video { width: 100%; height: 100%; object-fit: contain; background: #1b1714; }
-  .frame video { position: absolute; inset: 0; }
+  .frame img { position: relative; z-index: 2; }
+  .frame video { position: absolute; inset: 0; z-index: 1; }
   .talking { animation: nod 1.6s ease-in-out infinite; transform-origin: center 18%; }
   @keyframes nod { 50% { transform: translateY(5px) scale(1.012); } }
   .who { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
@@ -106,7 +107,7 @@
           <p class="name">阿青</p>
           <p class="role">全身讲解</p>
         </div>
-        <p class="note" id="note">门票和开放时间以景区当天公布为准。第一次提问会稍慢，之后会快一些。</p>
+        <p class="note" id="note">问完后稍等一会儿，文字、口型和声音会一起出来。门票和开放时间以景区当天公布为准。</p>
       </aside>
       <section class="panel">
         <div class="chat" id="chat"></div>
@@ -167,50 +168,76 @@ function showStill() {
   stage.style.display = "none";
   still.style.display = "block";
 }
-function speak(src) {
-  if (!src) return;
-  if (!voice) voice = new Audio();
-  voice.src = src;
-  voice.play().then(() => { toggle.textContent = "暂停"; }).catch(() => {});
+function stopVoice() {
+  if (voice) { voice.pause(); voice = null; }
 }
-function playAnswer(data) {
+function playTogether(data, bubble) {
   currentAudio = data.audio || "";
-  if (data.video) {
-    if (voice) { voice.pause(); voice = null; }
-    stage.muted = false;
-    stage.style.display = "block";
-    stage.src = data.video + "#t=0.01";
-    const started = stage.play();
-    if (started) started.then(() => { toggle.textContent = "暂停"; }).catch(() => speak(data.audio));
+  stopVoice();
+  if (bubble && data.answer) {
+    bubble.textContent = data.answer;
+    chat.scrollTop = chat.scrollHeight;
+  }
+  if (!data.video) {
+    status.textContent = "画面没生成，请再问一次";
+    showStill();
     return;
   }
-  speak(data.audio);
+  still.classList.remove("talking");
+  stage.muted = false;
+  stage.style.display = "block";
+  stage.src = data.video;
+  const started = stage.play();
+  const onPlay = () => {
+    still.style.display = "none";
+    toggle.textContent = "暂停";
+    status.textContent = "";
+  };
+  const onBlock = () => {
+    still.style.display = "block";
+    toggle.textContent = "开始";
+    status.textContent = "点右下角「开始」，文字、画面和声音一起出";
+  };
+  if (started && started.then) started.then(onPlay).catch(onBlock);
+  else onBlock();
 }
+stage.addEventListener("playing", () => { still.style.display = "none"; });
 stage.addEventListener("ended", showStill);
-stage.addEventListener("error", () => { showStill(); speak(currentAudio); });
+stage.addEventListener("error", () => {
+  showStill();
+  status.textContent = "画面没出来，请再问一次";
+});
 toggle.onclick = () => {
-  const clip = stage.style.display !== "none" && stage.src ? stage : voice;
-  if (!clip || !clip.src) return;
-  if (clip.paused) { clip.play(); toggle.textContent = "暂停"; }
-  else { clip.pause(); toggle.textContent = "继续"; }
+  const showingVideo = stage.style.display !== "none" && (stage.currentSrc || stage.src);
+  const clip = showingVideo ? stage : voice;
+  if (!clip || !(clip.currentSrc || clip.src)) return;
+  if (clip.paused) {
+    clip.play().then(() => {
+      if (showingVideo) still.style.display = "none";
+      toggle.textContent = "暂停";
+      status.textContent = "";
+    }).catch(() => {});
+  } else {
+    clip.pause();
+    toggle.textContent = "继续";
+  }
 };
 
 async function ask(text, placeText) {
   const place = (placeText || placeInput.value).trim();
   const q = (text || "").trim();
   if (!q || busy) return;
-  if (voice) { voice.pause(); voice = null; }
-  voice = new Audio();
-  const primed = voice.play().catch(() => {});
+  stopVoice();
+  showStill();
   placeInput.value = place;
   add("user", "去" + place + "：" + q);
   input.value = "";
   busy = true;
   send.disabled = true;
-  status.textContent = "阿青正在讲";
-  const pending = add("guide", "");
+  status.textContent = "阿青正在准备，文字、画面和声音会一起出来";
+  const pending = add("guide", "正在准备…");
   still.classList.add("talking");
-  const data = {answer: "", audio: ""};
+  const data = {answer: "", audio: "", video: ""};
   try {
     const res = await fetch("api/ask", {
       method: "POST",
@@ -230,18 +257,18 @@ async function ask(text, placeText) {
       lines.forEach(line => {
         if (!line.startsWith("data: ")) return;
         const msg = JSON.parse(line.slice(6));
-        if (msg.text) {
-          data.answer += msg.text;
-          pending.textContent = data.answer;
-          chat.scrollTop = chat.scrollHeight;
-        }
+        if (msg.text) data.answer += msg.text;
         if (msg.done) data.audio = msg.audio || "";
       });
     }
-    currentAudio = data.audio || "";
-    addActions(pending.parentElement, data);
-    status.textContent = data.audio ? "阿青正在准备开口" : "";
-    if (data.audio) loadVideo(data, status);
+    if (!data.answer) data.answer = "刚才没连上，请再问一次。";
+    if (!data.audio) {
+      pending.textContent = data.answer;
+      status.textContent = "这次没有声音";
+      return;
+    }
+    status.textContent = "阿青正在准备开口，好了会一起出来";
+    await loadVideo(data, pending);
   } catch (err) {
     pending.textContent = err.message || "刚才没连上，请再问一次。";
     status.textContent = "";
@@ -252,7 +279,7 @@ async function ask(text, placeText) {
   }
 }
 
-async function loadVideo(data, statusEl) {
+async function loadVideo(data, bubble) {
   try {
     const res = await fetch("api/video", {
       method: "POST",
@@ -260,27 +287,25 @@ async function loadVideo(data, statusEl) {
       body: JSON.stringify({audio: data.audio})
     });
     const out = await res.json();
-    if (!res.ok || !out.video) return;
-    if (currentAudio !== data.audio) return;
+    if (!res.ok || !out.video) throw new Error(out.error || "画面没生成");
     data.video = out.video;
-    data.video = out.video;
-    statusEl.textContent = "";
-    playAnswer(data);
-    if (stage.readyState >= 1) start();
-    else stage.onloadedmetadata = start;
+    addActions(bubble.parentElement, data, bubble);
+    playTogether(data, bubble);
   } catch (err) {
-    statusEl.textContent = "";
+    bubble.textContent = data.answer || "画面没生成，请再问一次。";
+    status.textContent = err.message || "画面没生成，请再问一次";
+    showStill();
   }
 }
 
-function addActions(row, data) {
+function addActions(row, data, bubble) {
   const box = document.createElement("div");
   box.className = "chips";
-  if (data.audio) {
+  if (data.video) {
     const again = document.createElement("button");
     again.type = "button";
-    again.textContent = "再听一遍";
-    again.onclick = () => playAnswer(data);
+    again.textContent = "再看一遍";
+    again.onclick = () => playTogether(data, bubble);
     box.appendChild(again);
   }
   row.appendChild(box);
