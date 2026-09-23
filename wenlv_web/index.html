@@ -217,13 +217,42 @@ async function ask(text, placeText) {
     pending.textContent = data.answer;
     playAnswer(data);
     addActions(pending.parentElement, data);
-    status.textContent = "";
+    status.textContent = "阿青正在准备动作";
+    if (data.audio) loadVideo(data, status);
   } catch (err) {
     pending.textContent = err.message || "刚才没连上，请再问一次。";
     status.textContent = "";
   } finally {
     busy = false;
     send.disabled = false;
+  }
+}
+
+async function loadVideo(data, statusEl) {
+  try {
+    const res = await fetch("api/video", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({audio: data.audio})
+    });
+    const out = await res.json();
+    if (!res.ok || !out.video) return;
+    if (currentAudio !== data.audio) return;
+    data.video = out.video;
+    const at = voice && voice.src.endsWith(data.audio) ? voice.currentTime : 0;
+    if (voice) { voice.pause(); voice = null; }
+    still.style.display = "none";
+    stage.style.display = "block";
+    stage.src = out.video;
+    const start = () => {
+      if (at > 0.3 && at < (stage.duration || 1e9) - 0.3) stage.currentTime = at;
+      stage.play().then(() => { toggle.textContent = "暂停"; statusEl.textContent = ""; })
+        .catch(() => { showStill(); speak(data.audio); statusEl.textContent = ""; });
+    };
+    if (stage.readyState >= 1) start();
+    else stage.onloadedmetadata = start;
+  } catch (err) {
+    statusEl.textContent = "";
   }
 }
 
@@ -236,30 +265,6 @@ function addActions(row, data) {
     again.textContent = "再听一遍";
     again.onclick = () => playAnswer({audio: data.audio});
     box.appendChild(again);
-    const make = document.createElement("button");
-    make.type = "button";
-    make.textContent = "生成视频";
-    make.onclick = async () => {
-      make.disabled = true;
-      status.textContent = "正在生成视频，大约二十秒";
-      try {
-        const res = await fetch("api/video", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({audio: data.audio})
-        });
-        const out = await res.json();
-        if (!res.ok || !out.video) throw new Error(out.error || "生成失败");
-        data.video = out.video;
-        playAnswer({audio: data.audio, video: out.video});
-        status.textContent = "";
-      } catch (err) {
-        status.textContent = err.message || "视频生成失败";
-      } finally {
-        make.disabled = false;
-      }
-    };
-    box.appendChild(make);
   }
   row.appendChild(box);
 }
