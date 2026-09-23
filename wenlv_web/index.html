@@ -264,13 +264,13 @@ async function loadVideo(data, statusEl) {
     if (currentAudio !== data.audio) return;
     data.video = out.video;
     const at = voice && voice.src.endsWith(data.audio) ? voice.currentTime : 0;
-    if (voice) { voice.pause(); voice = null; }
+    stage.muted = true;
     stage.style.display = "block";
     stage.src = out.video;
     const start = () => {
       if (at > 0.3 && at < (stage.duration || 1e9) - 0.3) stage.currentTime = at;
       stage.play().then(() => { toggle.textContent = "暂停"; statusEl.textContent = ""; })
-        .catch(() => { stage.style.display = "none"; speak(data.audio); statusEl.textContent = ""; });
+        .catch(() => { stage.style.display = "none"; statusEl.textContent = ""; });
     };
     if (stage.readyState >= 1) start();
     else stage.onloadedmetadata = start;
