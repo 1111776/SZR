@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>阿青 · 文旅数字人架构图</title>
+<style>
+  :root { --ink: #2a2118; --gold: #c4a15a; --red: #8c2f2f; --card: #fffaf2; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--ink);
+    font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", serif;
+    background: linear-gradient(165deg, #f7efe2, #eadcc8 60%, #e4d3bd);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 16px 48px; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: 2px; font-weight: 600; }
+  h1 span { color: var(--red); }
+  .sub { margin: 8px 0 0; color: #6d5c48; font-size: 14px; }
+  .board {
+    margin-top: 22px; background: var(--card);
+    border: 1px solid rgba(196,161,90,.55); border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(90,60,20,.08); padding: 18px 12px 8px;
+    overflow-x: auto;
+  }
+  svg { width: 100%; height: auto; min-width: 920px; display: block; }
+  .note { margin: 14px 4px 0; color: #6d5c48; font-size: 13px; line-height: 1.7; }
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; background: var(--card); border-radius: 14px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid rgba(196,161,90,.35); font-size: 14px; line-height: 1.6; }
+  th { background: rgba(140,47,47,.08); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>讲解员 <span>阿青</span> · 架构图</h1>
+    <p class="sub">游客选景点并提问，文字、口型和声音在口型算好后同一时刻出来。模型权重和密钥不在这个仓库里。</p>
+    <div class="board">
+      <svg viewBox="0 0 1040 760" role="img" aria-label="阿青讲解系统架构图">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1.2 L 10 5 L 0 8.8 z" fill="#8c2f2f" />
+          </marker>
+          <style>
+            .box { fill: #fffaf2; stroke: #c4a15a; stroke-width: 1.5; }
+            .core { fill: #8c2f2f; }
+            .title { font: 600 16px "Songti SC", "Noto Serif SC", serif; fill: #2a2118; }
+            .coretext { font: 600 16px "Songti SC", "Noto Serif SC", serif; fill: #fff8ee; }
+            .small { font: 13px "Songti SC", "Noto Serif SC", serif; fill: #6d5c48; }
+            .core-small { font: 13px "Songti SC", "Noto Serif SC", serif; fill: #f3ddc4; }
+            .label { font: 13px "Songti SC", "Noto Serif SC", serif; fill: #8c2f2f; }
+            .line { fill: none; stroke: #8c2f2f; stroke-width: 1.6; marker-end: url(#arrow); }
+          </style>
+        </defs>
+
+        <rect class="box" x="330" y="24" width="380" height="78" rx="14" />
+        <text class="title" x="520" y="54" text-anchor="middle">游客页面</text>
+        <text class="small" x="520" y="78" text-anchor="middle">wenlv_web/index.html · 打字或说话 · 选景点</text>
+
+        <path class="line" d="M520 102 V150" />
+        <text class="label" x="534" y="132">提问 / 录音</text>
+
+        <rect class="core" x="250" y="156" width="540" height="132" rx="16" />
+        <text class="coretext" x="520" y="188" text-anchor="middle">讲解服务 wenlv_server.py</text>
+        <text class="core-small" x="520" y="214" text-anchor="middle">Flask · 0.0.0.0:6006 · 公网 8443 转发到这里</text>
+        <text class="core-small" x="520" y="236" text-anchor="middle">/api/ask 生成回答和语音 · /api/video 生成口型 · /api/listen 识别</text>
+        <text class="core-small" x="520" y="258" text-anchor="middle">显卡锁一次只算一段口型，提问不会被视频堵住</text>
+
+        <path class="line" d="M340 288 V338" />
+        <path class="line" d="M520 288 V338" />
+        <path class="line" d="M700 288 V338" />
+
+        <rect class="box" x="36" y="344" width="250" height="96" rx="14" />
+        <text class="title" x="161" y="378" text-anchor="middle">讲解词</text>
+        <text class="small" x="161" y="404" text-anchor="middle">wenlv_config.py 规定讲法</text>
+        <text class="small" x="161" y="424" text-anchor="middle">DeepSeek 生成，密钥只在环境变量</text>
+
+        <rect class="box" x="396" y="344" width="248" height="96" rx="14" />
+        <text class="title" x="520" y="378" text-anchor="middle">语音</text>
+        <text class="small" x="520" y="404" text-anchor="middle">Edge TTS 合成讲解语音</text>
+        <text class="small" x="520" y="424" text-anchor="middle">FunASR 把游客的话识别成文字</text>
+
+        <rect class="box" x="754" y="344" width="250" height="96" rx="14" />
+        <text class="title" x="879" y="378" text-anchor="middle">口型</text>
+        <text class="small" x="879" y="404" text-anchor="middle">SadTalker 按语音逐帧算嘴</text>
+        <text class="small" x="879" y="424" text-anchor="middle">贴回阿青半身照片，每秒 10 帧</text>
+
+        <path class="line" d="M161 440 V500" />
+        <path class="line" d="M520 440 V500" />
+        <path class="line" d="M879 440 V500" />
+
+        <rect class="box" x="36" y="506" width="250" height="72" rx="14" />
+        <text class="title" x="161" y="536" text-anchor="middle">回答文字</text>
+        <text class="small" x="161" y="558" text-anchor="middle">简短约 20–30 字，详细更长</text>
+
+        <rect class="box" x="396" y="506" width="248" height="72" rx="14" />
+        <text class="title" x="520" y="536" text-anchor="middle">讲解语音 mp3</text>
+        <text class="small" x="520" y="558" text-anchor="middle">不单独先播放</text>
+
+        <rect class="box" x="754" y="506" width="250" height="72" rx="14" />
+        <text class="title" x="879" y="536" text-anchor="middle">说话视频 mp4</text>
+        <text class="small" x="879" y="558" text-anchor="middle">嘴和声音在同一条片子里</text>
+
+        <path class="line" d="M161 578 V620 H520 V650" />
+        <path class="line" d="M520 578 V650" />
+        <path class="line" d="M879 578 V620 H520 V650" />
+
+        <rect class="core" x="300" y="656" width="440" height="78" rx="16" />
+        <text class="coretext" x="520" y="686" text-anchor="middle">同一时刻交给游客</text>
+        <text class="core-small" x="520" y="710" text-anchor="middle">文字出现，画面张嘴，声音一起出 · 右下角可暂停</text>
+      </svg>
+    </div>
+    <p class="note">没有显卡时，讲解服务仍返回文字和语音，口型视频不可用。SadTalker 只驱动嘴、轻微表情和头，手和身体不会走动。模型权重约 20GB，不放进仓库。</p>
+    <table>
+      <tr><th>部分</th><th>放在哪里</th><th>做什么</th></tr>
+      <tr><td>游客页面</td><td>wenlv_web/index.html</td><td>选景点、打字或说话、等三者一起播放</td></tr>
+      <tr><td>讲解服务</td><td>wenlv_server.py</td><td>串起回答、语音、识别和口型</td></tr>
+      <tr><td>讲解规则</td><td>wenlv_config.py</td><td>阿青怎么讲，简短和详细的字数</td></tr>
+      <tr><td>回答生成</td><td>LLM/DeepSeek.py</td><td>按景点和问题向 DeepSeek 要讲解词</td></tr>
+      <tr><td>语音</td><td>Edge TTS、FunASR</td><td>把讲解念出来，把游客的话听成文字</td></tr>
+      <tr><td>口型</td><td>SadTalker</td><td>按语音把嘴贴回阿青的半身照片</td></tr>
+    </table>
+  </div>
+</body>
+</html>

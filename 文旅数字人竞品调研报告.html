@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文旅方向数字人项目竞品调研报告</title>
+<style>
+  :root{
+    --ink:#16161A;
+    --ink-2:#3D3D45;
+    --muted:#6E6E78;
+    --line:#E4E1DB;
+    --bg:#FBFAF7;
+    --card:#FFFFFF;
+    --qing:#1F5C7A;   /* 石青 */
+    --qing-soft:#EAF2F6;
+    --zhu:#B4472C;    /* 朱砂 */
+    --zhu-soft:#FBEEE9;
+    --gold:#8A6A1F;
+    --gold-soft:#F8F1E0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:"Inter","PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink);
+    line-height:1.75; font-size:15px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:56px 40px 100px;}
+
+  /* ---------- 封面 ---------- */
+  .cover{border-bottom:3px solid var(--ink);padding-bottom:32px;margin-bottom:48px;}
+  .cover .kicker{font-size:12px;letter-spacing:.22em;color:var(--zhu);font-weight:700;text-transform:uppercase;}
+  .cover h1{font-size:38px;line-height:1.25;letter-spacing:-.02em;font-weight:800;margin:14px 0 12px;}
+  .cover .sub{font-size:16px;color:var(--muted);max-width:760px;}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+  .meta span{font-size:12.5px;color:var(--ink-2);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 13px;}
+
+  /* ---------- 章节 ---------- */
+  h2{
+    font-size:23px;font-weight:800;letter-spacing:-.01em;
+    margin:56px 0 8px;padding-top:22px;border-top:2px solid var(--ink);
+  }
+  h2 .num{color:var(--zhu);font-size:14px;font-weight:700;display:block;letter-spacing:.16em;margin-bottom:6px;}
+  .lead{color:var(--muted);margin:10px 0 26px;font-size:14.5px;}
+  h3{font-size:17.5px;font-weight:700;margin:32px 0 12px;}
+  p{margin:10px 0;color:var(--ink-2);}
+  strong{color:var(--ink);font-weight:700;}
+
+  /* ---------- 表格 ---------- */
+  .tbl-wrap{overflow-x:auto;margin:18px 0 8px;border:1px solid var(--line);border-radius:12px;background:#fff;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px;}
+  th{background:#F4F2ED;text-align:left;font-weight:700;color:var(--ink);padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  td{padding:12px 14px;border-bottom:1px solid #EFEDE8;vertical-align:top;color:var(--ink-2);}
+  tr:last-child td{border-bottom:none;}
+  td.name{font-weight:700;color:var(--ink);white-space:nowrap;}
+  a{color:var(--qing);text-decoration:none;border-bottom:1px solid rgba(31,92,122,.3);word-break:break-all;}
+  a:hover{border-bottom-color:var(--qing);}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;background:#F2F0EB;padding:1px 6px;border-radius:5px;color:var(--ink);}
+
+  /* ---------- 三层结构 ---------- */
+  .layers{display:grid;gap:14px;margin:22px 0;}
+  .layer{background:#fff;border:1px solid var(--line);border-left:4px solid var(--qing);border-radius:10px;padding:16px 20px;}
+  .layer:nth-child(2){border-left-color:var(--zhu);}
+  .layer:nth-child(3){border-left-color:var(--gold);}
+  .layer h4{font-size:15px;font-weight:800;margin-bottom:5px;}
+  .layer .who{font-size:13px;color:var(--muted);}
+  .layer .who b{color:var(--ink);font-weight:600;}
+
+  /* ---------- 竞品卡片 ---------- */
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:0;margin:22px 0;overflow:hidden;
+    box-shadow:0 1px 2px rgba(22,22,26,.03);
+  }
+  .card-hd{padding:20px 24px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#FFFFFF 0%,#FCFBF8 100%);}
+  .card-hd .idx{font-size:11.5px;font-weight:800;letter-spacing:.16em;color:var(--zhu);}
+  .card-hd h3{margin:6px 0 6px;font-size:19px;}
+  .tagline{font-size:13.5px;color:var(--muted);margin:0 0 12px;}
+  .url{font-size:12.5px;background:#F4F2ED;border:1px solid var(--line);border-radius:7px;padding:7px 12px;display:inline-block;color:var(--ink-2);word-break:break-all;}
+  .url b{font-weight:700;color:var(--ink);margin-right:6px;}
+  .card-bd{padding:18px 24px 22px;}
+  .block{margin-bottom:16px;}
+  .block:last-child{margin-bottom:0;}
+  .block-t{
+    font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--qing);
+    text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;
+  }
+  .block-t::before{content:"";width:14px;height:2px;background:var(--qing);display:inline-block;border-radius:2px;}
+  .block.usecase .block-t{color:var(--zhu);}
+  .block.usecase .block-t::before{background:var(--zhu);}
+  .block.user .block-t{color:var(--gold);}
+  .block.user .block-t::before{background:var(--gold);}
+  ul{list-style:none;padding:0;}
+  li{position:relative;padding-left:16px;margin:6px 0;color:var(--ink-2);font-size:14px;}
+  li::before{content:"";position:absolute;left:0;top:.68em;width:5px;height:5px;border-radius:50%;background:#C9C4BA;}
+  li b{color:var(--ink);font-weight:700;}
+  .note{background:var(--zhu-soft);border-left:3px solid var(--zhu);border-radius:0 8px 8px 0;padding:11px 15px;font-size:13.5px;color:#7A3623;margin-top:14px;}
+  .note b{color:#5E2919;}
+
+  /* ---------- 标杆 IP ---------- */
+  .ip-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;}
+  .ip{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .ip h4{font-size:14.5px;font-weight:700;margin-bottom:4px;}
+  .ip p{font-size:13px;color:var(--muted);margin:0;}
+
+  /* ---------- 推荐 ---------- */
+  .rec{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin:14px 0;}
+  .rec h4{font-size:15px;font-weight:800;margin-bottom:8px;color:var(--qing);}
+  .rec p{font-size:14px;margin:6px 0;}
+
+  .foot{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);}
+  .foot p{margin:5px 0;font-size:12.5px;color:var(--muted);}
+
+  @media (max-width:720px){
+    .wrap{padding:32px 18px 64px;}
+    .cover h1{font-size:27px;}
+    .ip-grid{grid-template-columns:1fr;}
+    h2{font-size:20px;}
+  }
+  @media print{
+    body{background:#fff;}
+    .card,.tbl-wrap,.rec,.ip{box-shadow:none;}
+    h2{page-break-after:avoid;}
+    .card{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= 封面 ================= -->
+  <header class="cover">
+    <div class="kicker">Competitive Research / 竞品调研</div>
+    <h1>文旅方向数字人项目<br>竞品调研报告</h1>
+    <p class="sub">围绕「数字人 × 文旅」赛道，梳理国内 10 家可落地的竞品/供应商，统一按「主要功能模块 / 典型应用场景 / 面向目标用户」三段式拆解，并附官方网站地址与横向选型参考。</p>
+    <div class="meta">
+      <span>调研日期：2026-09-15</span>
+      <span>覆盖对象：10 家厂商 + 7 个标杆文旅数字人 IP</span>
+      <span>信息源：官网 / 官方公众号 / 政府与权威媒体公开报道</span>
+    </div>
+  </header>
+
+  <!-- ================= 01 结论速览 ================= -->
+  <h2><span class="num">01</span>结论速览</h2>
+  <p class="lead">先给三条最重要的判断，后面的明细都可以挂在这三条上。</p>
+
+  <p><strong>①「文旅数字人」不是一个独立品类，而是各平台的一个行业解决方案。</strong>除了少数垂直方案商，绝大多数厂商的文旅能力是从「数字人平台 + 行业模板 + 硬件终端」三件东西拼出来的。因此选型的本质不是比谁数字人更像人，而是比谁能把文旅场景的闭环补齐。</p>
+
+  <p><strong>②真正的差异化在四件事上：形象风格、交互载体、知识库与语种、本地 IP 定制与运营。</strong>大厂强在前两项与合规交付，垂直厂商强在后两项。这也是为什么同一批景区里，大厂拿平台底座、垂直厂商拿 IP 和运营。</p>
+
+  <p><strong>③政策是最强的需求放大器。</strong>2026 年 6 月八部门《关于加快"人工智能+消费"发展的实施意见》明确「推动人工智能赋能旅游，与行程规划、票务办理、导游导览、酒店预订等全链条深度融合」；2026 年 7 月《旅游强国建设"十五五"规划》把「智慧旅游」写进重点任务，要求「提升旅游行程规划、导游导览、沉浸式体验、流量预警、安全监管等全链条技术水平」。这意味着未来两年文旅数字人是预算确定的赛道。</p>
+
+  <!-- ================= 02 赛道分层 ================= -->
+  <h2><span class="num">02</span>赛道分层：谁在跟谁竞争</h2>
+  <p class="lead">把 10 家放在同一张图里，会发现它们其实处在三个不同层，彼此既竞争又互补。</p>
+
+  <div class="layers">
+    <div class="layer">
+      <h4>第一层 · 通用数字人平台（大厂云与大模型厂商）</h4>
+      <p class="who"><b>腾讯云智能数智人、百度智能云曦灵、华为云 MetaStudio、商汤如影、科大讯飞虚拟人</b><br>特征是底层模型 + 渲染 + 交互 + 云算力全栈，交付成熟、合规扎实，通常以 API/SDK/私有化方式输出，直接卖给文旅集团，也卖给 ISV。文旅是其行业方案之一。</p>
+    </div>
+    <div class="layer">
+      <h4>第二层 · 数字人全栈厂商（自研形象与驱动）</h4>
+      <p class="who"><b>魔珐科技、世优科技、硅基智能、相芯科技</b><br>特征是有自研的 3D 形象管线或驱动引擎，其中世优、魔珐自带文旅 IP 定制与硬件一体机能力，是景区项目里最常出现的直接竞标方；硅基偏电商直播，相芯偏 SDK 技术授权。</p>
+    </div>
+    <div class="layer">
+      <h4>第三层 · 文旅垂直解决方案商</h4>
+      <p class="who"><b>中广数科集团</b>（以及各地中小集成商）<br>特征是围绕景区真实 KPI（降人力、分流、二消）做软硬件一体打包，把数字人当入口，真正卖的是导览 + 安全 + 运营的整体方案。品牌与技术厚度弱，但更懂甲方预算与验收口径。</p>
+    </div>
+  </div>
+
+  <!-- ================= 03 竞品清单 ================= -->
+  <h2><span class="num">03</span>竞品清单与官方网站</h2>
+  <p class="lead">以下 10 个是本次调研中在文旅方向有公开落地证据、且可访问到官方入口的对象。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>产品 / 厂商</th><th>所属公司</th><th>官方网站</th><th>一句话定位</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td class="name">腾讯云智能数智人</td><td>腾讯云</td><td><a href="https://cloud.tencent.com/product/ivh">cloud.tencent.com/product/ivh</a></td><td>多模态人机交互系统，强在微信生态与 IP 授权</td></tr>
+        <tr><td>2</td><td class="name">百度智能云·曦灵数字人</td><td>百度</td><td><a href="https://xiling.cloud.baidu.com/">xiling.cloud.baidu.com</a></td><td>文心大模型驱动的企业级数字人平台，强在合规与私有化</td></tr>
+        <tr><td>3</td><td class="name">数字内容生产线 MetaStudio</td><td>华为云</td><td><a href="https://www.huaweicloud.com/product/mdh.html">huaweicloud.com/product/mdh.html</a></td><td>一站式数字人内容生产云平台，2D 数字人份额第 1</td></tr>
+        <tr><td>4</td><td class="name">如影 SenseAvatar</td><td>商汤科技</td><td><a href="https://senseavatar.sensetime.com/">senseavatar.sensetime.com</a></td><td>超写实数字人视频/直播生成，视觉渲染是长板</td></tr>
+        <tr><td>5</td><td class="name">讯飞虚拟数字人</td><td>科大讯飞</td><td><a href="https://virtual-man.xfyun.cn/">virtual-man.xfyun.cn</a></td><td>语音为长板的全栈虚拟人平台，文旅方案最完整</td></tr>
+        <tr><td>6</td><td class="name">魔珐科技 Xmov</td><td>魔珐科技</td><td><a href="https://www.xmov.ai/">www.xmov.ai</a></td><td>全栈 3D AI 数字人，「有形象、会表达、有大脑、能办事」</td></tr>
+        <tr><td>7</td><td class="name">世优科技 / 波塔 POTA</td><td>世优（北京）科技</td><td><a href="https://www.4utech.com/">www.4utech.com</a></td><td>数字人全栈技术提供商，文旅 IP 与硬件闭环最完整</td></tr>
+        <tr><td>8</td><td class="name">硅基智能</td><td>南京硅基智能</td><td><a href="https://www.guiji.ai/">www.guiji.ai</a></td><td>AIGC 数字人规模化部署，主打直播与数字员工</td></tr>
+        <tr><td>9</td><td class="name">相芯科技 FaceUnity</td><td>相芯科技</td><td><a href="https://www.faceunity.com/">www.faceunity.com</a></td><td>算法-引擎-硬件全栈自研的数字人技术底座与 SDK</td></tr>
+        <tr><td>10</td><td class="name">中广数科集团</td><td>中广数科集团</td><td><code>www.zgskjt.net</code> <span style="color:#B4472C">（待核验）</span></td><td>AI+文旅垂直方案商，导览／安全／政务三线打包</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13px;color:#6E6E78;">注：第 10 项官网在本次调研期间无法直连，网址来自其官方公众号公开署名信息，列入前建议实地核验；其余 9 个官网均已实际访问确认。</p>
+
+  <!-- ================= 04 逐项详析 ================= -->
+  <h2><span class="num">04</span>竞品逐项详析（统一格式）</h2>
+  <p class="lead">每张卡片固定四段：主要功能模块 → 典型应用场景 → 面向目标用户 → 文旅落地与短板。</p>
+
+  <!-- ---- 1 腾讯云 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">01 / 平台层</div>
+      <h3>腾讯云智能数智人</h3>
+      <p class="tagline">新一代多模态人机交互系统，做「有智能、有形象、可交互」的数智分身，核心优势是把数字人接进微信生态。</p>
+      <div class="url"><b>官网</b><a href="https://cloud.tencent.com/product/ivh">https://cloud.tencent.com/product/ivh</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>形象生产</b>：5 种形象类型（2D 精品 / 2D 小样本 / 3D 写实 / 3D 半写实 / 3D 卡通），支持摄影棚录制训练、3 分钟视频训练、换脸定制与照片建模，定制素材门槛已降至 5 秒级</li>
+          <li><b>交互会话</b>：唇形语音同步、表情动作拟人，支持声音驱动与文本驱动，可在指定文本处插入动作</li>
+          <li><b>音视频播报</b>：文本直接生成数字人口播视频，小样本形象制作成本低、时效快</li>
+          <li><b>端云混合渲染</b>：按终端性能智能适配，降低大屏／一体机／移动端的部署门槛</li>
+          <li><b>接入与管理</b>：PaaS 接口 + SDK，后台统一管理形象设置、驱动方式、文本对话与视频制作</li>
+          <li><b>IP 与生态</b>：可提供腾讯优势 IP 形象授权，内容可分发至视频号、公众号等私域渠道</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>博物馆／景区智能导览与文物讲解（线上小程序 + 线下大屏双端）</li>
+          <li>虚拟导游一体机与虚拟展厅接待</li>
+          <li>文旅口播短视频与宣传物料批量生产</li>
+          <li>文旅虚拟直播与城市/景区品牌虚拟代言</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>文旅集团与景区运营方（尤其需要微信私域运营的）</li>
+          <li>博物馆、美术馆、文博机构</li>
+          <li>会展策划商（线下策展转线上虚拟观展）</li>
+          <li>文旅内容团队、MCN 与地方文旅宣传部门</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>官方客户案例中明确列出「【文旅】中国国家博物馆」数智人「艾雯雯」，以及「【文旅】南京大报恩寺」3D 数智人「龙女」作为智能导览。短板是平台属性强、文旅垂直运营需合作方补位，且按时长计费在批量生产场景下成本偏高。</div>
+    </div>
+  </div>
+
+  <!-- ---- 2 百度 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">02 / 平台层</div>
+      <h3>百度智能云 · 曦灵数字人</h3>
+      <p class="tagline">依托文心大模型的企业级数字人平台，口型同步精度高、私有化部署合规性强，是公办文旅项目的稳妥选项。</p>
+      <div class="url"><b>官网</b><a href="https://xiling.cloud.baidu.com/">https://xiling.cloud.baidu.com/</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>人像定制</b>：2D 超拟真定制、文生 3D 数字人（对话即生成 3D 形象）、秒速创建照片数字人</li>
+          <li><b>大模型底座</b>：文心大模型驱动文案生成与多场景问答互动，实时对话中可做到及时精准回复</li>
+          <li><b>驱动能力</b>：口型自然准确，能模仿真人表情与动作，并在对话中按语义实时生成合适表情</li>
+          <li><b>语音生成</b>：丰富 TTS 音色库 + 音色克隆，可定制专属声音</li>
+          <li><b>多渲染模式</b>：云渲染兼容 WebRTC / RTMP，端渲染自研引擎适配 H5 / Android / iOS</li>
+          <li><b>开放与企业定制</b>：组件开放平台按原子能力输出，支持完整定制方案与私有化部署</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>景区虚拟导游与多语种 AI 讲解</li>
+          <li>文博虚拟讲解员、各地文旅数字推广大使</li>
+          <li>文旅智能客服与景区问询分流</li>
+          <li>文旅带货直播、营销视频与多语种翻译分发</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>公办文旅项目与博物馆——对合规要求极高、互动需求相对低的场景</li>
+          <li>文旅集团与地方文旅主管部门</li>
+          <li>金融、政务等同时需要数字员工的机构（跨行业复用）</li>
+          <li>有自有技术团队、需要私有化与 API 集成的大型机构</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>官方行业方案中列有「文旅」板块，案例覆盖各地文旅数字推广大使与文博虚拟讲解员。第三方测评普遍反馈：定制周期 1–2 个月偏长，且产品没有表演才艺属性，不适合需要热闹氛围的景区场景；中小客户反映套餐门槛偏高、免费版功能受限。</div>
+    </div>
+  </div>
+
+  <!-- ---- 3 华为云 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">03 / 平台层</div>
+      <h3>华为云 · 数字内容生产线 MetaStudio</h3>
+      <p class="tagline">一站式数字人内容生产云平台，「形象 / 声音 / 视频 / 直播 / 交互」五件套齐全，IDC 2024 中国 AI 数字人整体份额第 2、2D 数字人第 1。</p>
+      <div class="url"><b>官网</b><a href="https://www.huaweicloud.com/product/mdh.html">https://www.huaweicloud.com/product/mdh.html</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>形象制作</b>：仅需一段真人说话视频即可训练分身数字人，交付 ≤3 个工作日，支持走动 / 侧身 / 持物 / 实景训练，带 AI 眼神矫正</li>
+          <li><b>声音制作</b>：基础版（手机 3 分钟语料）／专业版（3 天交付，支持中英泛化）／企业版（30 分钟录音棚语料，可定制情感）三档</li>
+          <li><b>视频制作</b>：最高 4K 导出，文本或音频驱动，1080p 合成效率 1:1.5，支持自动解析 PPT 素材与敏感词检测</li>
+          <li><b>视频直播</b>：7×24 不间断直播，自动生成直播话术、违禁词识别替换、云端集群化直播间管理</li>
+          <li><b>智能交互</b>：多模态主动唤醒、自然打断式问答、端到端时延 &lt;2 秒，1 个 SDK + 5 行代码集成，可对接主流大模型</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>官方产品文档明确列出的文旅场景：<b>智能客服、数字人导览、数字人讲解</b></li>
+          <li>景区/文博场馆的 7×24 无人值守咨询与讲解</li>
+          <li>文旅宣传视频与多语种讲解内容批量生产</li>
+          <li>文旅电商与文创产品的数字人直播</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>有自有技术团队的中大型景区与文旅集团</li>
+          <li>智慧文旅系统集成商与 ISV（作为能力底座二次开发）</li>
+          <li>政府牵头的智慧景区总包项目</li>
+          <li>需要同时覆盖客服、播报、培训等多场景的机构</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>官方文档将「文旅：智能客服、数字人导览、数字人讲解」明确列为应用场景，但公开披露的文旅专属案例少于其他几家，产品形态偏「面向开发者的云服务」，需要二次开发与集成。价格上有 19.9 元/60 分钟这类体验包，试水成本较低。</div>
+    </div>
+  </div>
+
+  <!-- ---- 4 商汤 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">04 / 平台层</div>
+      <h3>商汤科技 · 如影 SenseAvatar</h3>
+      <p class="tagline">依托「日日新 SenseNova」多模态大模型的超写实数字人视频与直播生成平台，视觉渲染是其最强项。</p>
+      <div class="url"><b>官网</b><a href="https://senseavatar.sensetime.com/">https://senseavatar.sensetime.com/</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>AI 视频生成</b>：输入文字或上传录音约 2 分钟即可合成高清数字人视频，1:1 复刻真人面部细节与动作神态</li>
+          <li><b>数字人超级直播间</b>：无需拍摄真人模特与绿幕，基于往期直播视频即可复刻出 7×24 在线、可主动交互的数字人主播，当日复刻当日播</li>
+          <li><b>智能互动与大模型运营</b>：多模态大模型按交易额、互动频次智能选品，自动拆分商品讲解片段，支持语音/弹幕互动、自动切品控场</li>
+          <li><b>形象与音色资产</b>：100+ 版权数字人形象、300+ 多国语种音色，海量免费模板与素材</li>
+          <li><b>如影营销 Agent</b>：PC 端智能体工具，自然语言对话调取数据、执行分析任务、设置定时自动化任务</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>文旅展厅、城市展馆的高端大屏视觉展演</li>
+          <li>文旅沉浸式展演与全息投影实景联动</li>
+          <li>文旅发布会、专场活动的舞台级数字人演绎</li>
+          <li>文旅品牌与文创产品的数字人直播、宣传短视频</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>对画面质感要求高的文旅品牌、大型文旅综合体</li>
+          <li>景区展馆与城市展馆运营方（有高端展演预算）</li>
+          <li>文旅营销与内容团队（批量短视频 + 直播）</li>
+          <li>同时有电商属性的文旅商业配套项目</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>产品重心在电商直播与企业营销，文旅是适配场景而非主赛道；第三方横评提到其「实景版约 3598 元/个/年起」、定制形象周期 5–10 个工作日且费用偏高，代理体系不完善、偏项目制合作。适合做「看起来很贵」的展演型需求，不适合轻量化试水。</div>
+    </div>
+  </div>
+
+  <!-- ---- 5 讯飞 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">05 / 平台层</div>
+      <h3>科大讯飞 · 讯飞虚拟数字人 / 讯飞智作</h3>
+      <p class="tagline">语音为长板的全栈式虚拟人应用服务平台，五家平台层厂商里文旅方案最完整、终端形态最丰富的一家。</p>
+      <div class="url"><b>官网</b><a href="https://virtual-man.xfyun.cn/">https://virtual-man.xfyun.cn/</a></div>
+      <div class="url" style="margin-top:8px;"><b>文旅方案页</b><a href="https://www.xfyun.cn/solutions/virtual-tourism-solution">https://www.xfyun.cn/solutions/virtual-tourism-solution</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>虚拟人内容生产</b>：AI 演播室输入文本或录音，3 分钟内渲染出稿，支持多语种自动播报</li>
+          <li><b>虚拟人智能交互机</b>：大屏交互一体机终端，实现面对面咨询、智能问答与服务导览</li>
+          <li><b>移动数字人</b>：55 寸 OLED 透明屏 + 双向激光雷达 + 360° 声源定位，自主移动、站点播报、自动避障、自行充电</li>
+          <li><b>形象与声音定制</b>：一张照片生成景区专属数字人；真人形象克隆（5 分钟视频）、声音复刻（5 分钟音频）、3D 形象定制（超写实/卡通/美型，支持捏脸换装）</li>
+          <li><b>知识库与零代码接入</b>：上传 Word 文档即可由大模型自主学习，零代码 H5 页面快速嵌入小程序 / APP / 导游机</li>
+          <li><b>硬件生态</b>：AI 伴游 APP（一句话生成含景点、餐饮、交通的行程规划）、多语言 AI 透明屏（37 种语言）、讯飞双屏翻译机 2.0（80+ 外语、200+ 中国方言、离线 18 种语言）</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>景区与文博场馆的智能导览、动线指引与沉浸式讲解</li>
+          <li>研学游的趣味引导，以及红色文旅馆的文化宣传</li>
+          <li>入境游跨语言接待与服务（AI 透明屏 + 双屏翻译机）</li>
+          <li>AI 旅拍、AI 音乐会、AI 研学、AI 文创等消费转化场景</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>政府文旅部门与文旅集团（需要系统化、全流程运营保障的）</li>
+          <li>A 级景区、博物馆与文博场馆</li>
+          <li>有入境游接待需求的目的地（多语种是刚需）</li>
+          <li>研学机构与红色文旅项目方</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>已落地合肥骆岗中央公园（虚拟导游「皖皖」）、湖北恩施利川、长沙岳麓山风景区等；云冈石窟游客服务中心部署多语言 AI 透明屏；与陕文投合作《帝国密码-秦始皇陵》。短板是视觉表现力与娱乐表演属性弱于 3D 超写实厂商，游客容易「听完就走」，互动偏问答与讲解。</div>
+    </div>
+  </div>
+
+  <!-- ---- 6 魔珐 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">06 / 全栈厂商</div>
+      <h3>魔珐科技 Xmov</h3>
+      <p class="tagline">全栈式 3D AI 数字人公司，主张让企业拥有「有形象、会表达、有大脑、能办事」的数字人员工。</p>
+      <div class="url"><b>官网</b><a href="https://www.xmov.ai/">https://www.xmov.ai/</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>魔珐有言</b>：AI 数字人视频生成，集成 AIGC 声音、三维动画、三维形象、AI 镜头四条生成链路</li>
+          <li><b>魔珐有光</b>：AI 数字人直播</li>
+          <li><b>魔珐有灵</b>：消费级 AI 数字人智能体应用，零代码配置，覆盖移动端 / PC / 大屏，支持 1v1 服务与 7×24 运行</li>
+          <li><b>魔珐星云</b>：具身智能 3D 数字人开放平台</li>
+          <li><b>3D 资产与造人</b>：3000+ 超写实 3D 形象库，支持妆容、发型、服饰、脸型个性化编辑与图生 3D 造人</li>
+          <li><b>大模型 + Agent</b>：可对接自研或第三方 LLM，配合知识库、插件与工作流自定义智能体流程</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>文旅数字人讲解员与导览员（大屏、一体机、移动端多端）</li>
+          <li>场馆大屏交互与沉浸式展演</li>
+          <li>文旅宣传视频的规模化批量生产（含多 SKU 内容）</li>
+          <li>文旅品牌虚拟人直播与内容矩阵运营</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>文旅集团与景区（有品牌统一性与内容产能诉求的）</li>
+          <li>文博场馆与城市文旅品牌</li>
+          <li>有大量门店／分支机构需要统一内容输出的文旅连锁业态</li>
+          <li>内容与营销团队（替代传统 TVC 与图文物料）</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>官方披露行业客户超 1000 家，但方案与案例展示集中在医疗医美、教育教学、快消、广电、公共政务，文旅垂直案例的披露密度低于世优科技。3D 资产质量高，对应成本与制作周期也相对高，更适合有品牌调性要求的项目而非轻量试水。</div>
+    </div>
+  </div>
+
+  <!-- ---- 7 世优 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">07 / 全栈厂商</div>
+      <h3>世优科技 · 波塔 POTA AI 数字人</h3>
+      <p class="tagline">数字人全栈技术提供商，十年技术积累、累计打造数字人超 2000 个、服务近 1000 家客户；文旅是其第一梯队行业方案，IP 定制 + 硬件终端 + 运营的闭环最完整。</p>
+      <div class="url"><b>官网</b><a href="https://www.4utech.com/">https://www.4utech.com/</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>数字人工厂</b>：高精度 3D 数字人定制，覆盖超写实、美型、卡通、二次元等风格</li>
+          <li><b>2D 真人数字人</b>：面向数字员工、智能客服、新闻播报、短视频与课件录制</li>
+          <li><b>波塔 AI 数字人智能体</b>：新一代多模态交互系统，可部署于数字大屏、全息仓、一体机、网页 / H5 / 小程序等终端</li>
+          <li><b>数字幻境演播室</b>：XR / AR / VR 虚拟直播、发布会、晚会、演唱会制作</li>
+          <li><b>幻界 VR 大空间</b>：VR 大空间与 MR 结合，做沉浸式数字展演</li>
+          <li><b>文旅专属能力</b>：定制文旅专属数字人 IP 打造文化代言人；波塔接入景区专属知识库做深度文化解说；VR 大空间与 MR 互动做游览新体验</li>
+          <li><b>创新体验产品</b>：AI 绘画、AI 换装、MR 体验等标准化或定制化互动装置</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>文旅数字代言（城市级官方虚拟数字人、景区 IP 形象）</li>
+          <li>智能数字导游与趣味交互讲解（一体机、全息桶、移动透明屏）</li>
+          <li>数字化大空间展演与沉浸式体验馆</li>
+          <li>景区节庆演出、虚拟主持与 IP 演出秀</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>地方政府与文旅厅局（城市级 IP 与文旅节庆）</li>
+          <li>景区、古镇街区与主题乐园运营方</li>
+          <li>文博场馆、名人故居、自然科普展厅</li>
+          <li>大型活动与赛事主办方（数字主持、数字火炬手类需求）</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>文旅案例在本次调研的厂商中最密集且可核验——大理州城市级官方虚拟数字人「小金花」、山西文旅虚拟星推官「青鸟」、福建文旅 IP 郑成功、华山景区 IP「沉小香」、湖南旅发大会数字主持、伊犁将军府数字景区、乐山郭沫若故居 3D 数字人「小沫」、平顶山博物馆 3D 观音、汗马国家级自然保护区科普展厅、西藏电影文化长廊、2023 杭州亚运会数字火炬手「弄潮儿」。短板是第三方实测反馈其互动偏固定脚本，即兴对诗、接梗能力弱；硬件数万元/台起、订阅数千元/月，小型景区建议从标准款单 IP 起步。</div>
+    </div>
+  </div>
+
+  <!-- ---- 8 硅基 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">08 / 全栈厂商</div>
+      <h3>硅基智能</h3>
+      <p class="tagline">AIGC 数字人规模化部署厂商，国家级专精特新「小巨人」，在电商直播与数字员工方向部署量领先。</p>
+      <div class="url"><b>官网</b><a href="https://www.guiji.ai/">https://www.guiji.ai/</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>数字人生成</b>：3 分钟视频或 10 张图片即可生成数字分身，照片快速生成形象</li>
+          <li><b>语音与交互技术</b>：语音识别（ASR）、TTS、语音克隆、声纹识别、意图识别、情绪识别</li>
+          <li><b>小播秀</b>：数字人直播，支持多账号同时开播与分布式直播矩阵</li>
+          <li><b>硅语 AIGC 创作平台</b>：一站式视频与翻译内容创作</li>
+          <li><b>DUIX</b>：大模型智能交互平台，底层框架 duix.ai 以 MIT 协议开源</li>
+          <li><b>多语言</b>：中英日韩 + 8 种方言，口型精准匹配</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>文旅文创、地方特产、门票的数字人直播带货</li>
+          <li>景区宣传短视频批量生产与内容矩阵分发</li>
+          <li>数字员工形式的文旅咨询客服</li>
+          <li>目的地推介与地方品牌直播宣讲</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>有大规模内容产出与直播需求的文旅商家、景区商业体</li>
+          <li>本地生活与文旅代运营团队、MCN</li>
+          <li>预算敏感的县域文旅项目（轻量化试水）</li>
+          <li>需要私有化部署的中大型文旅企业</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>赛道以电商直播为重心，文旅专属方案与硬件终端形态偏弱，更多是「用数字人卖文旅商品」而非「用数字人做景区服务」。价格锚点：大众版约 299 元/月起、标准产品 5500 元–2.5 万元、SaaS 版约 4999 元/月起、私有化部署 30 万元起。</div>
+    </div>
+  </div>
+
+  <!-- ---- 9 相芯 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">09 / 全栈厂商</div>
+      <h3>相芯科技 FaceUnity</h3>
+      <p class="tagline">算法-引擎-硬件全栈自研的数字人技术底座与 SDK 供应商，AvatarX 平台覆盖从卡通到全真的全品类形象。</p>
+      <div class="url"><b>官网</b><a href="https://www.faceunity.com/">https://www.faceunity.com/</a></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>AvatarX 数字人平台</b>：卡通数字人（P2A 照片转 3D，3 秒生成，支持捏脸换装）、视频数字人（3–5 分钟真人口播视频 1:1 复刻）、超写实 / 仿真 / 全真数字人</li>
+          <li><b>五大算法模块</b>：弱输入智能建模、全要素角色动画、多模态自然交互、轻量化实时渲染、智能化人像处理</li>
+          <li><b>引擎与硬件</b>：自研渲染引擎 CUbiC（满足信创要求，通过麒麟软件认证）；两套自研硬件——原真物体扫描仪、全真数字人扫描仪</li>
+          <li><b>AI 数字人直播方案</b>：大模型驱动，实时弹幕识别与大模型生成回复，支持语音/文本多驱动模式</li>
+          <li><b>行业方案</b>：金融数字人（数字人客服 / 财富营销助手 / 营业厅大屏助手）、AR 视频特效、智能终端</li>
+          <li><b>接入方式</b>：以 SDK / APK 形式输出，覆盖 Android、iOS、PC、Unity、鸿蒙</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>文旅 AR 互动与虚拟形象打卡（游客生成自己的数字化身）</li>
+          <li>景区大屏／一体机上的数字人客服与业务引导</li>
+          <li>目的地与景区虚拟形象代言、直播推介</li>
+          <li>文旅 App / 小程序内的嵌入式互动玩法</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>需要把数字人能力嵌入自有 App / 小程序的技术团队</li>
+          <li>景区与文旅目的地（尤其看重 AR 互动与适老化服务的）</li>
+          <li>智能终端厂商与文旅硬件集成商</li>
+          <li>金融机构等需要软硬一体数字人方案的行业客户（跨行业复用）</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>以 To B 技术输出为主（SDK 累计调用量超 500 亿次，服务超 2000 家企业，覆盖 200 多个国家和地区），不自带文旅内容与运营能力，文旅专属案例与知识库需要合作方补齐。适合作为「能力模块」被集成，而不是端到端的文旅解决方案。</div>
+    </div>
+  </div>
+
+  <!-- ---- 10 中广数科 ---- -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="idx">10 / 文旅垂直</div>
+      <h3>中广数科集团</h3>
+      <p class="tagline">AI+文旅垂直方案商，以「AI Agent 智能体 + 数字人终端」软硬件一体打包，直接对标西江千户苗寨「AI 游西江」国家级案例。</p>
+      <div class="url"><b>官网</b><code>www.zgskjt.net</code> <span style="color:#B4472C">（本次调研期间无法直连，待核验）</span></div>
+    </div>
+    <div class="card-bd">
+      <div class="block">
+        <div class="block-t">主要功能模块</div>
+        <ul>
+          <li><b>智慧导览</b>：AI 数字人一体机（游客中心 / 场馆点位固定终端）、迎宾 AI 机器人（园区移动巡场终端）、AI Agent 智能体能力底座、AI 翻译器（140+ 种语言实时互译）</li>
+          <li><b>安全管理</b>：景区 AI 安全平台（客流预警、危险行为识别、异常事件告警）、景区 AI 机器人巡检，构建「天地空一体化」无人机巡航 + 高空鹰眼 + 地面感知体系</li>
+          <li><b>政务服务与政策宣贯</b>：AI 中央矩阵电商数智平台（管控中台）、AI 智能直播一体机、AI 数字人短视频系统</li>
+          <li><b>文旅智能体</b>：行程智能规划、个性化路线推荐、实时导览、问答互动、消费场景推荐、多语言服务</li>
+          <li><b>内容与营销</b>：AI 短视频矩阵、AI 数字人直播、AI 文旅宣传片生成、城市 IP 数字化运营</li>
+          <li><b>硬件矩阵</b>：AI 数字人一体机、AI 智能直播一体机、AI 卡片 / 磁吸 / 支架翻译器、AI 学习平板等</li>
+        </ul>
+      </div>
+      <div class="block usecase">
+        <div class="block-t">典型应用场景</div>
+        <ul>
+          <li>景区入口、游客中心、换乘驿站、博物馆展厅的数字人导览与咨询</li>
+          <li>旺季客流分流、实时排队问询与个性化路线生成（对标「AI 游西江」）</li>
+          <li>非遗技艺与民俗文化的数字化解读与传播</li>
+          <li>入境游多语种接待，以及农文旅政策宣贯与乡村振兴场景</li>
+        </ul>
+      </div>
+      <div class="block user">
+        <div class="block-t">面向目标用户</div>
+        <ul>
+          <li>景区运营公司、文旅集团、景区管委会</li>
+          <li>地方文旅局、农业农村局、乡村振兴局等政府部门</li>
+          <li>民族民俗景区、山水自然景区、古城古镇与文博展馆</li>
+          <li>乡村旅游项目与田园综合体</li>
+        </ul>
+      </div>
+      <div class="note"><b>文旅落地与短板：</b>打法最贴甲方 KPI（降人力、分流、二消、可申报创新案例），能提供规划—建设—运营—迭代全周期服务。但技术自研深度与品牌势能明显小于大厂；官网在本次调研期间无法直连，公开信息主要来自其官方公众号，<b>列入候选前建议核验其官网与标杆案例的真实性</b>。</div>
+    </div>
+  </div>
+
+  <!-- ================= 05 横向对比 ================= -->
+  <h2><span class="num">05</span>横向对比矩阵</h2>
+  <p class="lead">按文旅选型最关心的六个维度做拉通对比，★ 越多表示越强。</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>厂商</th><th>形象能力</th><th>交互终端</th><th>知识库 / 大模型</th><th>文旅专属方案</th><th>交付模式</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="name">腾讯云数智人</td><td>★★★★☆<br><span style="font-size:12px">5 类形象、IP 授权</span></td><td>★★★★☆<br><span style="font-size:12px">大屏/一体机/小程序</span></td><td>★★★★☆<br><span style="font-size:12px">NLU 引擎+生态内容</span></td><td>★★★★☆<br><span style="font-size:12px">国博、大报恩寺</span></td><td>SaaS + API/SDK</td></tr>
+        <tr><td class="name">百度曦灵</td><td>★★★★☆<br><span style="font-size:12px">2D 超拟真+文生 3D</span></td><td>★★★☆☆<br><span style="font-size:12px">云渲染+端渲染</span></td><td>★★★★★<br><span style="font-size:12px">文心大模型</span></td><td>★★★☆☆<br><span style="font-size:12px">文旅推广大使</span></td><td>私有化 + API</td></tr>
+        <tr><td class="name">华为云 MetaStudio</td><td>★★★★★<br><span style="font-size:12px">2D 份额第 1</span></td><td>★★★★☆<br><span style="font-size:12px">SDK 5 行代码集成</span></td><td>★★★★☆<br><span style="font-size:12px">可对接主流 LLM</span></td><td>★★★☆☆<br><span style="font-size:12px">文档列明三类场景</span></td><td>云服务 + 私有化</td></tr>
+        <tr><td class="name">商汤如影</td><td>★★★★★<br><span style="font-size:12px">4K 超写实渲染</span></td><td>★★★☆☆<br><span style="font-size:12px">PC/Web/移动端</span></td><td>★★★★☆<br><span style="font-size:12px">日日新多模态</span></td><td>★★★☆☆<br><span style="font-size:12px">展演/展厅为主</span></td><td>SaaS + 项目制</td></tr>
+        <tr><td class="name">科大讯飞</td><td>★★★☆☆<br><span style="font-size:12px">4 类形象+一张照片定制</span></td><td>★★★★★<br><span style="font-size:12px">一体机+移动数字人+翻译硬件</span></td><td>★★★★☆<br><span style="font-size:12px">星火大模型+Word 建库</span></td><td>★★★★★<br><span style="font-size:12px">独立文旅方案页</span></td><td>软硬件一体</td></tr>
+        <tr><td class="name">魔珐科技</td><td>★★★★★<br><span style="font-size:12px">3000+ 3D 形象</span></td><td>★★★★☆<br><span style="font-size:12px">移动端/PC/大屏</span></td><td>★★★★☆<br><span style="font-size:12px">LLM+知识库+插件</span></td><td>★★★☆☆<br><span style="font-size:12px">文旅非主推行业</span></td><td>SaaS + 开放平台</td></tr>
+        <tr><td class="name">世优科技</td><td>★★★★★<br><span style="font-size:12px">2000+ 数字人 IP</span></td><td>★★★★★<br><span style="font-size:12px">大屏/全息仓/一体机/MR</span></td><td>★★★★☆<br><span style="font-size:12px">波塔专属知识库</span></td><td>★★★★★<br><span style="font-size:12px">文旅案例最密集</span></td><td>软硬件一体 + 定制</td></tr>
+        <tr><td class="name">硅基智能</td><td>★★★★☆<br><span style="font-size:12px">3 分钟视频克隆</span></td><td>★★☆☆☆<br><span style="font-size:12px">以直播端为主</span></td><td>★★★★☆<br><span style="font-size:12px">DUIX 交互平台</span></td><td>★★☆☆☆<br><span style="font-size:12px">靠直播带货切入</span></td><td>SaaS + 私有化</td></tr>
+        <tr><td class="name">相芯科技</td><td>★★★★☆<br><span style="font-size:12px">卡通→全真全品类</span></td><td>★★★☆☆<br><span style="font-size:12px">SDK 嵌入自有产品</span></td><td>★★★☆☆<br><span style="font-size:12px">兼容客户自有 TTS/ASR</span></td><td>★★☆☆☆<br><span style="font-size:12px">无专属文旅方案</span></td><td>SDK / APK 授权</td></tr>
+        <tr><td class="name">中广数科集团</td><td>★★★☆☆<br><span style="font-size:12px">定制 IP 形象</span></td><td>★★★★★<br><span style="font-size:12px">一体机+机器人+翻译器</span></td><td>★★★★☆<br><span style="font-size:12px">自研文旅垂直智能体</span></td><td>★★★★★<br><span style="font-size:12px">导览+安全+政务三线</span></td><td>全周期打包</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>价格锚点（脱敏，来自公开渠道与第三方测评，仅供量级参考）</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>厂商</th><th>入门/体验价</th><th>常规订阅</th><th>定制与私有化</th></tr></thead>
+      <tbody>
+        <tr><td class="name">腾讯云数智人</td><td>交互数智人体验包 140 元/天（约 5.9 元/小时）</td><td>播报视频生成 1200 元/小时（20 元/分钟）</td><td>形象租赁约 1200 元/小时起</td></tr>
+        <tr><td class="name">百度曦灵</td><td>免费版（功能受限）</td><td>直播约 2999 元/月起</td><td>年费通常 10 万元+，定制项目十万级起</td></tr>
+        <tr><td class="name">华为云 MetaStudio</td><td>19.9 元/60 分钟视频制作体验包</td><td>按形象/声音/视频/直播分项套餐</td><td>企业版声音克隆、私有化按需报价</td></tr>
+        <tr><td class="name">商汤如影</td><td>新用户赠 5 分钟视频合成时长</td><td>实景版约 3598 元/个/年起</td><td>定制形象周期 5–10 个工作日，费用偏高</td></tr>
+        <tr><td class="name">科大讯飞</td><td>基础功能/体验中心</td><td>订阅数千元/月</td><td>硬件万元级；定制按项目报价</td></tr>
+        <tr><td class="name">世优科技</td><td>文博秀标准款订阅数百元/月起（第三方实测）</td><td>订阅数千元/月</td><td>硬件数万元/台起</td></tr>
+        <tr><td class="name">硅基智能</td><td>大众版约 299 元/月起</td><td>SaaS 版 4999 元/月起</td><td>标准产品 5500 元–2.5 万元；私有化 30 万元起</td></tr>
+        <tr><td class="name">魔珐科技 / 相芯科技</td><td>提供试用与预约演示</td><td>按产品线报价</td><td>以项目制/授权为主</td></tr>
+        <tr><td class="name">中广数科集团</td><td>—</td><td>—</td><td>软硬件一体项目制，全周期服务报价</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13px;color:#6E6E78;">说明：以上价格来自厂商官网公开报价与第三方横评文章，可能存在调整，商务谈判前请以厂商最新报价为准。</p>
+
+  <!-- ================= 06 标杆 IP ================= -->
+  <h2><span class="num">06</span>标杆文旅数字人 IP（需求风向标）</h2>
+  <p class="lead">这些不是竞品，而是甲方侧的「参照物」。做方案时被提及最多、最能抬高客户预期的就是这几张牌。</p>
+
+  <div class="ip-grid">
+    <div class="ip"><h4>敦煌「伽瑶」</h4><p>敦煌研究院 × 腾讯。原型为壁画神鸟「迦陵频伽」，首位数字敦煌文化大使，也是「云游敦煌」小程序首位数字讲解员；「云游敦煌」累计访问量已突破 8 亿人次。</p></div>
+    <div class="ip"><h4>中国国家博物馆「艾雯雯」</h4><p>腾讯云智能数智人。国内博物馆界首个虚拟数智人「新员工」，从事策展并为观众提供文物历史导览与咨询，是文博数字人最经典的品牌背书案例。</p></div>
+    <div class="ip"><h4>上海「沪小游」</h4><p>城市级文旅智能体，整合 36 大类、107 小类文旅资源，累计服务近 2000 万人次，提供定制化行程规划与 AIGC 游记生成，在 2026 WAIC 现场承担多语种接待。</p></div>
+    <div class="ip"><h4>杭州「杭小忆」</h4><p>杭州城市数字人，全面升级后提供出行导航、酒店预订、景区导览等智能服务，是「城市级数字人 + 全链条服务」的代表。</p></div>
+    <div class="ip"><h4>滕王阁「AI 导游王勃」</h4><p>游客扫码即可获得随行讲解，数字人「王勃」依游客步伐讲述《滕王阁序》各处来由，是把古文 IP 与实时导览绑定的示范。</p></div>
+    <div class="ip"><h4>大唐不夜城「唐小宝」</h4><p>西安大唐不夜城街区内的 AI 虚拟人，可在街区与游客自由交互，代表「文旅街区 + 即时互动」形态。</p></div>
+    <div class="ip"><h4>西江千户苗寨「AI 游西江」</h4><p>全国率先落地全域 AI 智能体的民族文化景区，覆盖行前规划、行中伴游、行后留存闭环，入选中国互联网协会 2025 企业数智化创新应用产品案例，是景区 AI 官方引用的标杆。</p></div>
+  </div>
+
+  <!-- ================= 07 选型建议 ================= -->
+  <h2><span class="num">07</span>选型建议与观察</h2>
+
+  <div class="rec">
+    <h4>如果目标是「文博场馆做稳重讲解、合规优先」</h4>
+    <p>优先看 <b>百度智能云曦灵</b> 与 <b>腾讯云智能数智人</b>——前者的私有化部署与合规性最稳，后者有国博这种级别的品牌背书，适合公办项目的验收口径。预算充足可叠加世优科技的 3D 硬件终端做线下体验。</p>
+  </div>
+
+  <div class="rec">
+    <h4>如果目标是「景区全域服务，含多语种与入境游」</h4>
+    <p>优先看 <b>科大讯飞</b>。它是唯一把文旅做成了独立方案页、并同时提供移动数字人、AI 透明屏、双屏翻译机三类硬件的厂商，跨境沟通与动线导览的覆盖度最完整。</p>
+  </div>
+
+  <div class="rec">
+    <h4>如果目标是「城市级 IP 与景区专属代言人」</h4>
+    <p>优先看 <b>世优科技</b>，其次是 <b>魔珐科技</b>。世优的文旅案例密度最高（大理小金花、山西青鸟、福建郑成功、华山沉小香等），甲方可直接引用同类案例降低决策成本；魔珐的 3D 资产规模更大，适合有品牌调性要求、愿意承担更高预算的项目。</p>
+  </div>
+
+  <div class="rec">
+    <h4>如果目标是「轻量试水、预算有限、以内容和直播为主导」</h4>
+    <p>优先看 <b>硅基智能</b>（299 元/月起的大众版）与 <b>腾讯云数智人</b>（140 元/天的体验包），先把内容产能和直播跑起来，再决定是否投入到硬件终端。</p>
+  </div>
+
+  <div class="rec">
+    <h4>如果目标是「一次性把导览 + 安全 + 政务打包交付」</h4>
+    <p>只有 <b>中广数科集团</b>这类文旅垂直方案商在提供这种形态，但必须先核验其官网与案例真实性——它的官网在本次调研期间无法访问，公开证据主要来自自媒体渠道，风险高于前九家。</p>
+  </div>
+
+  <h3>三条值得留意的观察</h3>
+  <p><strong>观察一：文旅数字人正在从「单品」走向「智能体 + 终端」。</strong>从「沪小游」「杭小忆」「AI 游西江」可以看出，甲方的验收标准已经从「有没有数字人」变成「能不能承接全链条服务（规划—导览—消费）」。纯数字人形象的产品会越来越难单独成交。</p>
+  <p><strong>观察二：硬件是护城河，也是成本中心。</strong>一体机、全息仓、移动机器人、AI 眼镜/耳机这些终端决定了体验上限，也决定了报价量级。政策已明确「鼓励景区配置人工智能眼镜、人工智能耳机等智能终端」，这一块会产生新的竞品位。</p>
+  <p><strong>观察三：文旅的护城河其实是「知识库 + 本地 IP」。</strong>形象和驱动技术在快速同质化（第三方测评普遍反映腾讯云数智人「人格化弱、同质化严重」），真正难以复制的是对本地文化内容的深度知识工程，以及一个让本地人认账的 IP 形象。这也是垂直方案商唯一可能守住的位置。</p>
+
+  <!-- ================= 08 信息说明 ================= -->
+  <h2><span class="num">08</span>信息核验说明</h2>
+  <p class="lead">为保证可追溯性，以下说明本报告的来源与置信度。</p>
+  <ul style="margin-top:14px;">
+    <li><b>已直接访问确认的官网（9 个）</b>：腾讯云智能数智人、百度智能云曦灵、华为云 MetaStudio、商汤如影、讯飞虚拟数字人、魔珐科技、世优科技、相芯科技、硅基智能。</li>
+    <li><b>无法直接访问、需核验（1 个）</b>：中广数科集团官网 <code>www.zgskjt.net</code>，网址来源为其官方公众号署名，请在实际使用前实地验证。</li>
+    <li><b>功能与案例信息</b>主要来自厂商官网产品页、官方帮助文档、官方公众号及权威媒体报道（人民网、中新网、央广网、地方政府官网、国家文物局等）。</li>
+    <li><b>市场排名、价格区间与短板评价</b>部分引自第三方横评文章（模板科技盘点、博客园实测、今日头条文旅实测等）。这类内容带有作者立场，<b>仅作量级参考，不建议直接引用到对外方案中</b>。</li>
+    <li><b>建议下一步补充核验</b>：各家在 2026 年的最新报价、文旅专属合同条款（是否含知识库训练与后续运营）、以及是否有 2026 年新增的文旅落地案例。</li>
+  </ul>
+
+  <div class="foot">
+    <p>本报告由 WorkBuddy 于 2026-09-15 基于公开信息整理，供内部选型参考。</p>
+    <p>厂商产品与价格变动频繁，关键决策前请以官方最新信息与商务沟通结果为准。</p>
+  </div>
+
+</div>
+</body>
+</html>
